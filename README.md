@@ -16,15 +16,20 @@ This repository contains research code for performing coherence analyses on Dist
 ## Installation
 
 1. Clone the repository:
-   ```sh
-   git clone https://github.com/aissah/Coherence_Analyses.git
-   cd Coherence_Analyses
-   ```
+
+    ```sh
+    git clone https://github.com/aissah/Coherence_Analyses.git
+    cd Coherence_Analyses
+    ```
+
 2. Install dependencies (Python >=3.11 required):
+
    ```sh
    pip install -r requirements.txt
    ```
+
    Or use the optional dependencies in `pyproject.toml` for notebooks and modeling:
+
    ```sh
    pip install .[notebooks,modeling,rand-svd]
    ```
@@ -58,12 +63,12 @@ Explore and visualize coherence analysis results using the notebooks in the `not
 
 ```
 coherence_analysis/
-	coherence_analysis.py      # Main analysis script
-	single_file_coherence.py  # Single file analysis
-	utils.py                  # Utility functions
+    coherence_analysis.py      # Main analysis script
+    single_file_coherence.py  # Single file analysis
+    utils.py                   # Utility functions
 data/
-	images/                   # Figures and plots
-	results/                  # Output results
+    images/                   # Figures and plots
+    results/                  # Output results
 notebooks/                   # Jupyter notebooks for exploration
 scripts/                     # SLURM and batch scripts
 tests.py                     # Unit and integration tests
