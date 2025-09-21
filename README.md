@@ -61,20 +61,22 @@ Explore and visualize coherence analysis results using the notebooks in the `not
 
 ## Directory Structure
 
-```
-coherence_analysis/
-    coherence_analysis.py      # Main analysis script
-    single_file_coherence.py  # Single file analysis
-    utils.py                   # Utility functions
-data/
-    images/                   # Figures and plots
-    results/                  # Output results
-notebooks/                   # Jupyter notebooks for exploration
-scripts/                     # SLURM and batch scripts
-tests.py                     # Unit and integration tests
-requirements.txt             # Python dependencies
-pyproject.toml               # Project metadata and optional dependencies
-README.md                    # Project documentation
+```bash
+coherence_analyses/
+│
+├── coherence_analysis/
+│   ├── coherence_analysis.py      # Main analysis script
+│   ├── single_file_coherence.py  # Single file analysis
+│   └── utils.py                   # Utility functions
+├── data/
+│   ├── images/                   # Figures and plots
+│   └── results/                  # Output results
+├── notebooks/                   # Jupyter notebooks for exploration
+├── scripts/                     # SLURM and batch scripts
+├── tests.py                     # Unit and integration tests
+├── requirements.txt             # Python dependencies
+└── pyproject.toml               # Project metadata and optional dependencies
+└── README.md                    # Project documentation
 ```
 
 ## Testing
