@@ -194,6 +194,7 @@ rand-svd = [
 dev = [
     { name = "pytest" },
     { name = "pytest-codspeed" },
+    { name = "pytest-mock" },
     { name = "ruff" },
 ]
 
@@ -213,6 +214,7 @@ provides-extras = ["notebooks", "modeling", "rand-svd"]
 dev = [
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-codspeed", specifier = ">=3.1.0" },
+    { name = "pytest-mock", specifier = ">=3.15.1" },
     { name = "ruff", specifier = ">=0.6.8" },
 ]
 
@@ -1364,6 +1366,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/1e/67/25012e5408c079415f2afdd36a3a2d468d4cc61d840de0838db9b46fcb69/pytest_codspeed-3.1.0-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:5f0c1857a0a6cce6a23c49f98c588c2eef66db353c76ecbb2fb65c1a2b33a8d5", size = 25872 },
     { url = "https://files.pythonhosted.org/packages/8c/56/2e09d58c5cf8881d72568e2d2523bcf16c2d53cd18d6eb97fc96c2650d33/pytest_codspeed-3.1.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:a4731a7cf1d8d38f58140d51faa69b7c1401234c59d9759a2507df570c805b11", size = 27114 },
     { url = "https://files.pythonhosted.org/packages/6e/78/d4e278668b89af36b2c7f1896fe8140edc2aa840c9b75cf160afbd6e30fb/pytest_codspeed-3.1.0-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:c5f2e4b63260f65493b8d42c8167f831b8ed90788f81eb4eb95a103ee6aa4294", size = 25862 },
+]
+
+[[package]]
+name = "pytest-mock"
+version = "3.15.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/68/14/eb014d26be205d38ad5ad20d9a80f7d201472e08167f0bb4361e251084a9/pytest_mock-3.15.1.tar.gz", hash = "sha256:1849a238f6f396da19762269de72cb1814ab44416fa73a8686deac10b0d87a0f", size = 34036 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5a/cc/06253936f4a7fa2e0f48dfe6d851d9c56df896a9ab09ac019d70b760619c/pytest_mock-3.15.1-py3-none-any.whl", hash = "sha256:0a25e2eb88fe5168d535041d09a4529a188176ae608a6d249ee65abc0949630d", size = 10095 },
 ]
 
 [[package]]
