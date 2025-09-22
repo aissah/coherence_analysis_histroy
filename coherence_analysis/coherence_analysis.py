@@ -43,7 +43,7 @@ from pathlib import Path
 
 import dascore as dc
 import numpy as np
-from utils import coherence
+from coherence_analysis.utils import coherence
 
 
 class CoherenceAnalysis:
