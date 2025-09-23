@@ -3,6 +3,7 @@ data/*
 
 # python compiled files
 __pycache__/*
+*/__pycache__/*
 
 # pytest cache
 .pytest_cache/*
