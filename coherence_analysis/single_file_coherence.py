@@ -16,7 +16,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-import functions as func
+import coherence_analysis.utils as func
 
 METHODS = ["exact", "qr", "svd", "rsvd", "power", "qr iteration"]
 save_location = Path(
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     data, _ = func.load_brady_hdf5(file, normalize="no")
 
     if method in METHODS:  # method == "qr":
-        detection_significance, eig_estimates = func.coherence(
+        detection_significance, eig_estimates, _ = func.coherence(
             data[
                 first_channel : channel_offset + first_channel : int(
                     channel_offset / num_channels

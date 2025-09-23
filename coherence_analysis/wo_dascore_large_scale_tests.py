@@ -33,7 +33,7 @@ import sys
 from datetime import datetime
 
 import numpy as np
-import utils as func
+import coherence_analysis.utils as func
 
 
 def _next_data_window(
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     # handled the beginning of later batches. Then we keep appending to
     # the variables set up for first file of the batch above
     if method in METHODS:
-        detection_significances, eig_estimatess = func.coherence(
+        detection_significances, eig_estimatess, _ = func.coherence(
             data,
             sub_window_length,
             overlap,
