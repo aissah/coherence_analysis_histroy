@@ -190,8 +190,8 @@ def welch_coherence(
         data, subwindow_len, overlap, freq, sample_interval
     )
 
-    mean_spectra = np.mean(win_spectra, axis=0)
-    win_spectra -= mean_spectra
+    # mean_spectra = np.mean(win_spectra, axis=0)
+    # win_spectra -= mean_spectra
 
     normalizer = np.sum(np.absolute(win_spectra) ** 2, axis=0)
     normalizer = np.tile(normalizer, (normalizer.shape[0], 1, 1))
@@ -323,7 +323,9 @@ def exact_coherence(
     overlap: int = 0,
     resolution: float = 0.1,
     sample_interval: int = 1,
-):
+    max_freq: float = None,
+    min_freq: float = 0,
+) -> tuple:
     """
     Compute the detection significance from coherence.
 
@@ -356,30 +358,41 @@ def exact_coherence(
         Eigenvalues of the coherence matrix
 
     """
-    coherence, _ = welch_coherence(
+    coherence, frequencies = welch_coherence(
         data, subwindow_len, overlap, sample_interval=sample_interval
     )
+    if max_freq is None:
+        max_freq = frequencies[-1]
+    freq_select = (frequencies >= min_freq) & (frequencies <= max_freq)
+    coherence = coherence[freq_select]
+    frequencies = frequencies[freq_select]
+
+    freq_interval = int(1 / resolution)
+    coherence = coherence[::freq_interval]
+    frequencies = frequencies[::freq_interval]
+    
     num_frames = coherence.shape[0]
-    num_frames = int(num_frames * resolution)
+    # num_frames = int(num_frames * resolution)
 
     # Custom line due to apparent lowpass in BH data:
     # only use 3/5 of the frames
-    num_frames = int(num_frames * 2 / 5)
+    # num_frames = int(num_frames * 2 / 5)
 
     num_subwindows = coherence.shape[2]
     detection_significance = np.empty(num_frames)
     # store the eigenvalues
     eigenvalss = np.empty((num_frames, num_subwindows))
-    freq_interval = int(1 / resolution)
+    # freq_interval = int(1 / resolution)
 
     for d in range(num_frames):
         # eigenvals, _ = np.linalg.eig(coherence[d * freq_interval])
-        eigenvals = np.linalg.eigvalsh(coherence[d * freq_interval])
+        # eigenvals = np.linalg.eigvalsh(coherence[d * freq_interval])
+        eigenvals = np.linalg.eigvalsh(coherence[d])
         eigenvalss[d] = eigenvals[:num_subwindows]
         eigenvals = np.sort(eigenvals)[::-1]
         detection_significance[d] = eigenvals[0] / np.sum(eigenvals)
 
-    return detection_significance, eigenvalss
+    return detection_significance, eigenvalss, frequencies
 
 
 def svd_coherence(norm_win_spectra: np.ndarray):
@@ -470,7 +483,8 @@ def qr_coherence(norm_win_spectra: np.ndarray):
 
     for d in range(num_frames):
         r_matrix = np.linalg.qr(norm_win_spectra[d], mode="r")
-        qr_approx = np.diag(r_matrix @ np.conjugate(r_matrix.transpose()))
+        # qr_approx = np.diag(r_matrix @ np.conjugate(r_matrix.transpose()))
+        qr_approx = np.sum(np.multiply(r_matrix, np.conjugate(r_matrix)).real, axis=1)
         sorted_qr_approx = np.sort(qr_approx)[::-1]
         detection_significance[d] = sorted_qr_approx[0] / np.sum(
             np.absolute(sorted_qr_approx)
@@ -662,6 +676,8 @@ def coherence(
             overlap,
             sample_interval=sample_interval,
             resolution=resolution,
+            max_freq=max_freq,
+            min_freq=min_freq,
         )
     else:
         norm_win_spectra, frequencies = normalised_windowed_spectra(
