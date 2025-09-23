@@ -153,21 +153,25 @@ def test_save_results(mocker, instance):
     assert mock_open.call_count > 0
     assert mock_pickle_dump.call_count == 3
 
-def test_windowed_spectra():
 
+def test_windowed_spectra():
     sampling_rate = 500  # Hz
     duration = 60  # seconds
     t = np.linspace(0, duration, int(sampling_rate * duration), endpoint=False)
     signal = np.zeros(t.shape)
-    impulse_times = [5*i for i in range(12)]
+    impulse_times = [5 * i for i in range(12)]
     for impulse_time in impulse_times:
         index = int(impulse_time * sampling_rate)
-        signal[index+1250] = 1
+        signal[index + 1250] = 1
     signal = np.tile(signal, (3, 1))
-    win_spectra, frequencies = utils.windowed_spectra(signal, 5, 0, sample_interval = 1/sampling_rate)
-    normalized_spectra, frequencies = utils.normalised_windowed_spectra(signal, 5, 0, sample_interval = 1/sampling_rate)
+    win_spectra, frequencies = utils.windowed_spectra(
+        signal, 5, 0, sample_interval=1 / sampling_rate
+    )
+    normalized_spectra, frequencies = utils.normalised_windowed_spectra(
+        signal, 5, 0, sample_interval=1 / sampling_rate
+    )
     assert win_spectra.shape == (12, 3, 1251)
     assert normalized_spectra.shape == (1251, 3, 12)
     assert np.allclose(np.abs(win_spectra), 1)
-    assert np.allclose(np.abs(normalized_spectra), 1/np.sqrt(12))
-    assert np.allclose(frequencies, np.fft.rfftfreq(2500, d=1/sampling_rate))
+    assert np.allclose(np.abs(normalized_spectra), 1 / np.sqrt(12))
+    assert np.allclose(frequencies, np.fft.rfftfreq(2500, d=1 / sampling_rate))

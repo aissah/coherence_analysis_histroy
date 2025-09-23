@@ -370,7 +370,7 @@ def exact_coherence(
     freq_interval = int(1 / resolution)
     coherence = coherence[::freq_interval]
     frequencies = frequencies[::freq_interval]
-    
+
     num_frames = coherence.shape[0]
     # num_frames = int(num_frames * resolution)
 
@@ -484,7 +484,9 @@ def qr_coherence(norm_win_spectra: np.ndarray):
     for d in range(num_frames):
         r_matrix = np.linalg.qr(norm_win_spectra[d], mode="r")
         # qr_approx = np.diag(r_matrix @ np.conjugate(r_matrix.transpose()))
-        qr_approx = np.sum(np.multiply(r_matrix, np.conjugate(r_matrix)).real, axis=1)
+        qr_approx = np.sum(
+            np.multiply(r_matrix, np.conjugate(r_matrix)).real, axis=1
+        )
         sorted_qr_approx = np.sort(qr_approx)[::-1]
         detection_significance[d] = sorted_qr_approx[0] / np.sum(
             np.absolute(sorted_qr_approx)
@@ -494,9 +496,7 @@ def qr_coherence(norm_win_spectra: np.ndarray):
     return detection_significance, qr_approxs
 
 
-def rsvd_coherence(
-    norm_win_spectra: np.ndarray, approx_rank: int = None
-):
+def rsvd_coherence(norm_win_spectra: np.ndarray, approx_rank: int = None):
     """
     Compute the detection significance from randomized SVD approximation of coherence.
 
@@ -664,7 +664,9 @@ def coherence(
     detection_significance = coherence(data, 10, 5, method='exact')
     """
     METHODS = ["exact", "qr", "svd", "rsvd", "power", "qr iteration"]
-    assert method in METHODS, f"Invalid method: {method}; valid methods are: {METHODS}"
+    assert (
+        method in METHODS
+    ), f"Invalid method: {method}; valid methods are: {METHODS}"
 
     if method in ["power", "qr iteration"]:
         raise NotImplementedError(f"Method {method} not implemented yet.")
