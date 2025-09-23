@@ -352,7 +352,7 @@ def exact_coherence(
     detection_significance : numpy array
         Detection significance of the data based on coherence
         computed using the exact method
-    eigenvalss : numpy array
+    eigenvals : numpy array
         Eigenvalues of the coherence matrix
 
     """
@@ -457,8 +457,7 @@ def qr_coherence(norm_win_spectra: np.ndarray, resolution: float = 1):
     -------
     detection_significance : numpy array
         Detection significance of the data based on coherence
-        computed using
-        the QR decomposition
+        computed using the QR decomposition
     qr_approxs : numpy array
         Approximation of the eigenvalues of the data using the QR
         decomposition
@@ -506,7 +505,7 @@ def rsvd_coherence(
         Normalized windowed spectra
     resolution : float, optional
         Resolution of the detection significance from 0 to 1.
-        The default is 0.1.
+        The default is 1.
     approx_rank : int, optional
         Approximate rank for the randomized SVD method.
         The default is None.
@@ -619,7 +618,7 @@ def coherence(
     method: str = "exact",
     approx_rank: int = 10,
     max_freq: float = None,
-    min_freq: float = None,
+    min_freq: float = 0,
 ):
     """
     Compute a detection significance using coherence.
@@ -658,6 +657,10 @@ def coherence(
     detection_significance = coherence(data, 10, 5, method='exact')
     """
     METHODS = ["exact", "qr", "svd", "rsvd", "power", "qr iteration"]
+    assert method in METHODS, f"Invalid method: {method}; valid methods are: {METHODS}"
+
+    if method in ["power", "qr iteration"]:
+        raise NotImplementedError(f"Method {method} not implemented yet.")
 
     if method == "exact":
         return exact_coherence(
@@ -667,35 +670,31 @@ def coherence(
             sample_interval=sample_interval,
             resolution=resolution,
         )
-    elif method == "qr":
-        norm_win_spectra, _ = normalised_windowed_spectra(
-            data, subwindow_len, overlap, sample_interval=sample_interval
-        )
-        return qr_coherence(norm_win_spectra, resolution=resolution)
-    elif method == "svd":
-        norm_win_spectra, _ = normalised_windowed_spectra(
-            data, subwindow_len, overlap, sample_interval=sample_interval
-        )
-        return svd_coherence(norm_win_spectra, resolution=resolution)
-    elif method == "rsvd":
-        norm_win_spectra, _ = normalised_windowed_spectra(
-            data, subwindow_len, overlap, sample_interval=sample_interval
-        )
-        return rsvd_coherence(
-            norm_win_spectra, resolution=resolution, approx_rank=approx_rank
-        )
-    elif method == "power":
-        return power_iteration(data, tol=1e-6, max_iter=1000)
-    elif method == "qr iteration":
-        return qr_iteration(data, tol=1e-6, max_iter=1000)
     else:
-        error_msg = f"Invalid method: {method}; valid methods are: {METHODS}"
-        raise ValueError(error_msg)
+        norm_win_spectra, frequencies = normalised_windowed_spectra(
+            data, subwindow_len, overlap, sample_interval=sample_interval
+        )
+        if max_freq is None:
+            max_freq = frequencies[-1]
+        freq_select = (frequencies >= min_freq) & (frequencies <= max_freq)
+        norm_win_spectra = norm_win_spectra[freq_select]
+        frequencies = frequencies[freq_select]
+
+        if method == "qr":
+            detection_significance, eigenvals = qr_coherence(norm_win_spectra, resolution=resolution)
+        elif method == "svd":
+            detection_significance, eigenvals = svd_coherence(norm_win_spectra, resolution=resolution)
+        elif method == "rsvd":
+            detection_significance, eigenvals = rsvd_coherence(
+                norm_win_spectra, resolution=resolution, approx_rank=approx_rank
+            )
+
+        return detection_significance, eigenvals, frequencies
 
 
 def rm_laser_drift(data: np.array) -> np.array:
     """
-    RSemove laser drift from DAS data.
+    Remove laser drift from DAS data.
 
     We do this by subtracting the median of each time
     sample across the channels from each channel at that time
