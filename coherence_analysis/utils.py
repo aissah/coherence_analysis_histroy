@@ -382,7 +382,7 @@ def exact_coherence(
     return detection_significance, eigenvalss
 
 
-def svd_coherence(norm_win_spectra: np.ndarray, resolution: float = 1):
+def svd_coherence(norm_win_spectra: np.ndarray):
     """
     Compute the detection significance from SVD approximation of coherence.
 
@@ -680,7 +680,7 @@ def coherence(
         if method == "qr":
             detection_significance, eigenvals = qr_coherence(norm_win_spectra)
         elif method == "svd":
-            detection_significance, eigenvals = svd_coherence(norm_win_spectra, resolution=resolution)
+            detection_significance, eigenvals = svd_coherence(norm_win_spectra)
         elif method == "rsvd":
             detection_significance, eigenvals = rsvd_coherence(
                 norm_win_spectra, approx_rank=approx_rank
