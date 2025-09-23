@@ -469,7 +469,7 @@ def qr_coherence(norm_win_spectra: np.ndarray):
     qr_approxs = np.empty((num_frames, np.min(norm_win_spectra.shape[1:])))
 
     for d in range(num_frames):
-        _, r_matrix = np.linalg.qr(norm_win_spectra[d])
+        r_matrix = np.linalg.qr(norm_win_spectra[d], mode="r")
         qr_approx = np.diag(r_matrix @ np.conjugate(r_matrix.transpose()))
         sorted_qr_approx = np.sort(qr_approx)[::-1]
         detection_significance[d] = sorted_qr_approx[0] / np.sum(
