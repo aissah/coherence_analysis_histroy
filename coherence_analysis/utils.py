@@ -398,7 +398,7 @@ def svd_coherence(norm_win_spectra: np.ndarray, resolution: float = 1):
         Normalized windowed spectra
     resolution : float, optional
         Resolution of the detection significance from 0 to 1.
-        The default is 0.1.
+        The default is 1.
 
     Returns
     -------
@@ -451,7 +451,7 @@ def qr_coherence(norm_win_spectra: np.ndarray, resolution: float = 1):
         Normalized windowed spectra
     resolution : float, optional
         Resolution of the detection significance from 0 to 1.
-        The default is 0.1.
+        The default is 1.
 
     Returns
     -------
@@ -618,6 +618,8 @@ def coherence(
     sample_interval: float = 1,
     method: str = "exact",
     approx_rank: int = 10,
+    max_freq: float = None,
+    min_freq: float = None,
 ):
     """
     Compute a detection significance using coherence.
