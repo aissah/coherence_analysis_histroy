@@ -3,3 +3,6 @@
 
 # python compiled files
 */__pycache__/*
+
+# pytest cache
+*/.pytest_cache/*
