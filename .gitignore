@@ -1,8 +1,8 @@
 # Data and results
-*/data/*
+data/*
 
 # python compiled files
-*/__pycache__/*
+__pycache__/*
 
 # pytest cache
-*/.pytest_cache/*
+.pytest_cache/*
