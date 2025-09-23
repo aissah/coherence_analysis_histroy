@@ -435,7 +435,7 @@ def svd_coherence(norm_win_spectra: np.ndarray, resolution: float = 1):
     return detection_significance, svd_approxs
 
 
-def qr_coherence(norm_win_spectra: np.ndarray, resolution: float = 1):
+def qr_coherence(norm_win_spectra: np.ndarray):
     """
     Compute the detection significance from QR decomposition approximation of coherence.
 
@@ -449,9 +449,6 @@ def qr_coherence(norm_win_spectra: np.ndarray, resolution: float = 1):
     ----------
     norm_win_spectra : numpy array
         Normalized windowed spectra
-    resolution : float, optional
-        Resolution of the detection significance from 0 to 1.
-        The default is 1.
 
     Returns
     -------
@@ -464,19 +461,16 @@ def qr_coherence(norm_win_spectra: np.ndarray, resolution: float = 1):
 
     """
     num_frames = norm_win_spectra.shape[0]
-    num_frames = int(num_frames * resolution)
 
     # Custom line due to apparent lowpass in BH data:
     # only use 3/5 of the frames
-    num_frames = int(num_frames * 2 / 5)
+    # num_frames = int(num_frames * 2 / 5)
 
-    # num_subwindows = norm_win_spectra.shape[2]
     detection_significance = np.empty(num_frames)
     qr_approxs = np.empty((num_frames, np.min(norm_win_spectra.shape[1:])))
-    freq_interval = int(1 / resolution)
 
     for d in range(num_frames):
-        _, r_matrix = np.linalg.qr(norm_win_spectra[d * freq_interval])
+        _, r_matrix = np.linalg.qr(norm_win_spectra[d])
         qr_approx = np.diag(r_matrix @ np.conjugate(r_matrix.transpose()))
         sorted_qr_approx = np.sort(qr_approx)[::-1]
         detection_significance[d] = sorted_qr_approx[0] / np.sum(
@@ -680,8 +674,12 @@ def coherence(
         norm_win_spectra = norm_win_spectra[freq_select]
         frequencies = frequencies[freq_select]
 
+        freq_interval = int(1 / resolution)
+        norm_win_spectra = norm_win_spectra[::freq_interval]
+        frequencies = frequencies[::freq_interval]
+
         if method == "qr":
-            detection_significance, eigenvals = qr_coherence(norm_win_spectra, resolution=resolution)
+            detection_significance, eigenvals = qr_coherence(norm_win_spectra)
         elif method == "svd":
             detection_significance, eigenvals = svd_coherence(norm_win_spectra, resolution=resolution)
         elif method == "rsvd":
