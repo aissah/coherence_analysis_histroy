@@ -482,7 +482,7 @@ def qr_coherence(norm_win_spectra: np.ndarray):
 
 
 def rsvd_coherence(
-    norm_win_spectra: np.ndarray, resolution: int = 1, approx_rank: int = None
+    norm_win_spectra: np.ndarray, approx_rank: int = None
 ):
     """
     Compute the detection significance from randomized SVD approximation of coherence.
@@ -517,11 +517,11 @@ def rsvd_coherence(
     from sklearn.utils.extmath import randomized_svd  # type: ignore
 
     num_frames = norm_win_spectra.shape[0]
-    num_frames = int(num_frames * resolution)
+    # num_frames = int(num_frames * resolution)
 
     # Custom line due to apparent lowpass in BH data:
     # only use 3/5 of the frames
-    num_frames = int(num_frames * 2 / 5)
+    # num_frames = int(num_frames * 2 / 5)
 
     if approx_rank is None:
         approx_rank = norm_win_spectra.shape[2]
@@ -684,7 +684,7 @@ def coherence(
             detection_significance, eigenvals = svd_coherence(norm_win_spectra, resolution=resolution)
         elif method == "rsvd":
             detection_significance, eigenvals = rsvd_coherence(
-                norm_win_spectra, resolution=resolution, approx_rank=approx_rank
+                norm_win_spectra, approx_rank=approx_rank
             )
 
         return detection_significance, eigenvals, frequencies
