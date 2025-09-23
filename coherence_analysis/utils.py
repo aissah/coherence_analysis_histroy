@@ -411,20 +411,19 @@ def svd_coherence(norm_win_spectra: np.ndarray, resolution: float = 1):
 
     """
     num_frames = norm_win_spectra.shape[0]
-    num_frames = int(num_frames * resolution)
+    # num_frames = int(num_frames * resolution)
 
     # Custom line due to apparent lowpass in BH data:
     # only use 3/5 of the frames
-    num_frames = int(num_frames * 2 / 5)
+    # num_frames = int(num_frames * 2 / 5)
 
     num_subwindows = norm_win_spectra.shape[2]
     detection_significance = np.empty(num_frames)
     svd_approxs = np.empty((num_frames, num_subwindows))
-    freq_interval = int(1 / resolution)
 
     for d in range(num_frames):
         singular_values = np.linalg.svd(
-            norm_win_spectra[d * freq_interval],
+            norm_win_spectra[d],
             compute_uv=False,
             hermitian=False,
         )
