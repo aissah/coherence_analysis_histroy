@@ -134,106 +134,6 @@ class CoherenceAnalysis:
             These can be set manually to desired values.
             """)
 
-    def _parse_args(self):
-        """Parse command line arguments.
-
-        Raises
-        ------
-        ValueError
-            Raise error if the method selected is not available.
-        """
-        # Initialize the parser
-        parser = argparse.ArgumentParser(
-            description="Coherence Analysis Configuration"
-        )
-
-        # Add arguments
-        parser.add_argument(
-            "method",
-            type=str,
-            choices=self.methods,
-            help="Method to use for coherence analysis",
-        )
-        parser.add_argument(
-            "data_path",
-            type=str,
-            help="Path to the directory containing the data files",
-        )
-        parser.add_argument(
-            "averaging_window_length",
-            type=int,
-            help="Averaging window length in seconds",
-        )
-        parser.add_argument(
-            "sub_window_length", type=int, help="Sub-window length in seconds"
-        )
-        parser.add_argument(
-            "-o", "--overlap", type=int, help="Overlap in seconds", default=0
-        )
-        parser.add_argument(
-            "-t",
-            "--time_range",
-            type=str,
-            help="Range of time to use for coherence analysis (in Python list format)",
-            default="(..., ...)",
-        )
-        parser.add_argument(
-            "-ch",
-            "--channel_range",
-            type=str,
-            help="Range of channels to use for coherence analysis (in Python list format)",
-            default="(0, ...)",
-        )
-        parser.add_argument(
-            "-ds",
-            "--channel_offset",
-            type=int,
-            help="Channels to skip in between",
-            default=1,
-        )
-        parser.add_argument(
-            "-dt",
-            "--time_step",
-            type=float,
-            help="Seconds per sample",
-            default=None,
-        )
-        parser.add_argument(
-            "-r",
-            "--result_path",
-            type=str,
-            help="Directory to save results",
-            default=os.path.join(
-                os.path.dirname(__file__), os.pardir, "data/results"
-            ),
-        )
-
-        # Parse arguments
-        args = parser.parse_args()
-
-        # Convert time_range and channel_range from strings to lists using literal_eval
-        self.time_range = [
-            datetime.strptime(a, "%m/%d/%y %H:%M:%S") if a != ... else ...
-            for a in literal_eval(args.time_range)
-        ]
-        self.channel_range = literal_eval(args.channel_range)
-
-        # Access the parsed arguments
-        self.data_path = args.data_path
-        self.save_location = args.result_path
-        self.channel_offset = args.channel_offset
-        self.averaging_window_length = args.averaging_window_length
-        self.sub_window_length = args.sub_window_length
-        self.overlap = args.overlap
-        self.time_step = args.time_step
-        self.method = args.method
-
-        if self.method not in self.methods:
-            error_msg = (
-                f"Method {self.method} not available for coherence analysis"
-            )
-            raise ValueError(error_msg)
-
     def read_data(self):
         """Read the data files and subselect according to input parameters using dascore."""
         # read the data files using the spool function from dascore
@@ -447,42 +347,10 @@ if __name__ == "__main__":
 
     # Parse arguments
     args = parse_args()
-
-    # # Convert time_range and channel_range from strings to lists using literal_eval
-    # self.time_range = [
-    #     datetime.strptime(a, "%m/%d/%y %H:%M:%S") if a != ... else ...
-    #     for a in literal_eval(args.time_range)
-    # ]
-    # self.channel_range = literal_eval(args.channel_range)
-
-    # # Access the parsed arguments
-    # self.data_path = args.data_path
-    # self.save_location = args.result_path
-    # self.channel_offset = args.channel_offset
-    # self.averaging_window_length = args.averaging_window_length
-    # self.sub_window_length = args.sub_window_length
-    # self.overlap = args.overlap
-    # self.time_step = args.time_step
-    # self.method = args.method
-
-    # if self.method not in self.methods:
-    #     error_msg = (
-    #         f"Method {self.method} not available for coherence analysis"
-    #     )
-    #     raise ValueError(error_msg)
+    print(f"Arguments read from command line: {args}", flush=True)
 
     # Initialize the coherence_analysis instance
     coherence_instance = CoherenceAnalysis(vars(args))
-
-    # Parse the command line arguments
-    coherence_instance._parse_args()
-
-    # Print the parsed arguments
-    print(f"Data Path: {coherence_instance.data_path}")
-    print(f"Time Range: {coherence_instance.time_range}")
-    print(f"Channel Range: {coherence_instance.channel_range}")
-    print(f"Method: {coherence_instance.method}")
-    print(f"Result Path: {coherence_instance.save_location}")
 
     # Read the data
     print("Reading data...", flush=True)
