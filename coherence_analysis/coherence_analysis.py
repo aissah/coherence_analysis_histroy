@@ -92,9 +92,7 @@ class CoherenceAnalysis:
             self.method = args["method"]
 
             if self.method not in self.methods:
-                error_msg = (
-                    f"Method {self.method} not available for coherence analysis"
-                )
+                error_msg = f"Method {self.method} not available for coherence analysis"
                 raise ValueError(error_msg)
 
             print(f"""Initialized with the following parameters:
@@ -111,7 +109,9 @@ class CoherenceAnalysis:
             """)
         else:
             # Initialize parameters to None
-            self.data_path = os.path.join(os.path.dirname(__file__), os.pardir, "data", "rawdata")
+            self.data_path = os.path.join(
+                os.path.dirname(__file__), os.pardir, "data", "rawdata"
+            )
             self.time_range = [..., ...]
             self.channel_range = (..., ...)
             self.channel_offset = None
@@ -120,7 +120,9 @@ class CoherenceAnalysis:
             self.overlap = None
             self.time_step = None
             self.method = None
-            self.save_location = os.path.join(os.path.dirname(__file__), os.pardir, "data", "results")
+            self.save_location = os.path.join(
+                os.path.dirname(__file__), os.pardir, "data", "results"
+            )
             print(f"""No arguments provided. These attributes are set to default values:
 
             data_path: {self.data_path}
@@ -149,18 +151,28 @@ class CoherenceAnalysis:
         self.channel_dim = channel_dim
 
         try:
-            start_ch = 0 if self.channel_range[0] == ... else self.channel_range[0]
-            end_ch = first_patch.coords.get_array(self.channel_dim).shape[0] if self.channel_range[1] == ... else self.channel_range[1]
+            start_ch = (
+                0 if self.channel_range[0] == ... else self.channel_range[0]
+            )
+            end_ch = (
+                first_patch.coords.get_array(self.channel_dim).shape[0]
+                if self.channel_range[1] == ...
+                else self.channel_range[1]
+            )
             print(f"Channels will be selected from {start_ch} to {end_ch}.")
             self.channel_range = (start_ch, end_ch)
         except AttributeError:
             print(f"Error: ")
-            print(f"The dimension '{self.channel_dim}' does not exist in the data.")
+            print(
+                f"The dimension '{self.channel_dim}' does not exist in the data."
+            )
             print("Available dimensions are:")
             for dim in dims:
                 print(f"- {dim}")
-            raise AttributeError(f"The dimension '{self.channel_dim}' does not exist in the data.")
-        
+            raise AttributeError(
+                f"The dimension '{self.channel_dim}' does not exist in the data."
+            )
+
     def read_data(self):
         """Read the data files and subselect according to input parameters using dascore."""
         # read the data files using the spool function from dascore
@@ -289,6 +301,7 @@ class CoherenceAnalysis:
         )
         with open(savename, "wb") as f:
             pickle.dump(metadata, f)
+
 
 def parse_args():
     """Parse command line arguments.
