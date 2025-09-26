@@ -266,11 +266,11 @@ class CoherenceAnalysis:
         metadata["method"] = self.method
         metadata["times"] = self.contents[["time_min", "time_max"]]
 
-        print(self.contents[["time_min", "time_max"]])
-        print(
-            self.contents["time_min"][0],
-            self.contents["time_max"][self.contents.index[-1]],
-        )
+        # print(self.contents[["time_min", "time_max"]])
+        # print(
+        #     self.contents["time_min"][0],
+        #     self.contents["time_max"][self.contents.index[-1]],
+        # )
 
         start_time = (
             str(self.contents["time_min"][0])
