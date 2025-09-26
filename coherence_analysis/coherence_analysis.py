@@ -49,9 +49,90 @@ from coherence_analysis.utils import coherence
 class CoherenceAnalysis:
     """Class to perform coherence analysis on DAS data."""
 
-    def __init__(self):
-        # Define a list of methods to use for coherence analysis
+    def __init__(self, args: dict = None):
+        """
+        Initialize the coherence analysis with input parameters.
+        Parameters
+        ----------
+        args : dict, optional
+            Dictionary of input parameters, by default None
+            Expected keys are:
+            - data_path: Path to the directory containing the data files
+            - time_range: Range of time to use for coherence analysis (in list format)
+            - channel_range: Range of channels to use for coherence analysis (in tuple format)
+            - channel_offset: Channels to skip in between
+            - averaging_window_length: Averaging window length in seconds
+            - sub_window_length: Sub-window length in seconds
+            - overlap: Overlap in seconds
+            - time_step: Seconds per sample
+            - method: Method to use for coherence analysis (one of "exact", "qr", "svd", "rsvd")
+            - result_path: Directory to save results
+
+        """
         self.methods = ["exact", "qr", "svd", "rsvd"]
+        if args is not None:
+            # Convert time_range and channel_range from strings to lists using literal_eval
+            self.time_range = [
+                datetime.strptime(a, "%m/%d/%y %H:%M:%S") if a != ... else ...
+                for a in literal_eval(args["time_range"])
+            ]
+            self.channel_range = literal_eval(args["channel_range"])
+
+            # Access the parsed arguments
+            self.data_path = args["data_path"]
+            self.save_location = args["result_path"]
+            self.channel_offset = args["channel_offset"]
+            self.averaging_window_length = args["averaging_window_length"]
+            self.sub_window_length = args["sub_window_length"]
+            self.overlap = args["overlap"]
+            self.time_step = args["time_step"]
+            self.method = args["method"]
+
+            if self.method not in self.methods:
+                error_msg = (
+                    f"Method {self.method} not available for coherence analysis"
+                )
+                raise ValueError(error_msg)
+
+            print(f"""Initialized with the following parameters:
+            data_path: {self.data_path}
+            time_range: {self.time_range}
+            channel_range: {self.channel_range}
+            channel_offset: {self.channel_offset}
+            averaging_window_length: {self.averaging_window_length}
+            sub_window_length: {self.sub_window_length}
+            overlap: {self.overlap}
+            time_step: {self.time_step}
+            method: {self.method}
+            save_location: {self.save_location}
+            """)
+        else:
+            # Initialize parameters to None
+            self.data_path = os.path.join(os.path.dirname(__file__), os.pardir, "data", "rawdata")
+            self.time_range = [..., ...]
+            self.channel_range = (..., ...)
+            self.channel_offset = None
+            self.averaging_window_length = None
+            self.sub_window_length = None
+            self.overlap = None
+            self.time_step = None
+            self.method = None
+            self.save_location = os.path.join(os.path.dirname(__file__), os.pardir, "data", "results")
+            print(f"""No arguments provided. These attributes are set to default values:
+
+            data_path: {self.data_path}
+            time_range: {self.time_range}
+            channel_range: {self.channel_range}
+            channel_offset: {self.channel_offset}
+            averaging_window_length: {self.averaging_window_length}
+            sub_window_length: {self.sub_window_length}
+            overlap: {self.overlap}
+            time_step: {self.time_step}
+            method: {self.method}
+            save_location: {self.save_location}
+
+            These can be set manually to desired values.
+            """)
 
     def _parse_args(self):
         """Parse command line arguments.
