@@ -137,6 +137,30 @@ class CoherenceAnalysis:
             These can be set manually to desired values.
             """)
 
+    def _set_channel_dim(self, channel_dim: str = None):
+        """Set the channel dimension to 'channel' if not already set."""
+        first_patch = self.spool[0]
+        if channel_dim is None:
+            dims = first_patch.dims
+            print(f"The data has the following dimensions: {dims}")
+            print(f"""Channels will be grouped based on the '{dims[1]}' dimension. 
+                  If another dimension is desired, use the method, '_set_channel_dim()' to set it.""")
+            channel_dim = dims[1]
+        self.channel_dim = channel_dim
+
+        try:
+            start_ch = 0 if self.channel_range[0] == ... else self.channel_range[0]
+            end_ch = first_patch.coords.get_array(self.channel_dim).shape[0] if self.channel_range[1] == ... else self.channel_range[1]
+            print(f"Channels will be selected from {start_ch} to {end_ch}.")
+            self.channel_range = (start_ch, end_ch)
+        except AttributeError:
+            print(f"Error: ")
+            print(f"The dimension '{self.channel_dim}' does not exist in the data.")
+            print("Available dimensions are:")
+            for dim in dims:
+                print(f"- {dim}")
+            raise AttributeError(f"The dimension '{self.channel_dim}' does not exist in the data.")
+        
     def read_data(self):
         """Read the data files and subselect according to input parameters using dascore."""
         # read the data files using the spool function from dascore
