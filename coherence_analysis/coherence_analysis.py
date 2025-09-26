@@ -172,6 +172,15 @@ class CoherenceAnalysis:
             raise AttributeError(
                 f"The dimension '{self.channel_dim}' does not exist in the data."
             )
+        
+        channels = np.arange(
+            self.channel_range[0],
+            self.channel_range[1],
+            self.channel_offset,
+            dtype=int,
+        )
+        distance_coords = first_patch.coords.get_array(self.channel_dim)
+        self.distance_array = distance_coords[channels]
 
     def read_data(self):
         """Read the data files and subselect according to input parameters using dascore."""
@@ -188,36 +197,39 @@ class CoherenceAnalysis:
         # chunk the spool into averaging_window length
         self.spool = self.spool.chunk(time=self.averaging_window_length)
 
+        self.spool = self.spool.select(time=self.time_range, samples=True)
+
+        # set the channel dimension
+        self._set_channel_dim()
+
         # subselect n_channels number of channels starting from start_channel
-        channels = np.arange(
-            self.channel_range[0] if self.channel_range[0] is not ... else 0,
-            (
-                self.channel_range[1]
-                if self.channel_range[1] is not ...
-                else self.spool[0].data.shape[1]
-            ),
-            self.channel_offset,
-            dtype=int,
-        )
+        # channels = np.arange(
+        #     self.channel_range[0],
+        #     self.channel_range[1],
+        #     self.channel_offset,
+        #     dtype=int,
+        # )
         # Using the distance array to select the channels with samples = False
         # This is a temporary solution to the issue of selecting channels
         # Only works for PRODML format
         # TODO: need to find a more general solution
-        distance_coords = self.spool[0].coords.get_array("distance")
-        distance_array = distance_coords[channels]
+        # distance_coords = self.spool[0].coords.get_array("distance")
+        # distance_array = distance_coords[channels]
+
         # subsample the spool to select the channels and time range
         # self.spool = self.spool.select(
         #     distance=(distance_array), samples=False
         # )
 
         # A more general solution. Yet to be tested
-        patch_list = []
-        for patch in self.spool:
-            patch_list.append(patch.select(distance=(distance_array)))
 
-        self.spool = dc.spool(patch_list)
+        # patch_list = []
+        # for patch in self.spool:
+        #     patch_list.append(patch.select(distance=(distance_array)))
 
-        self.spool = self.spool.select(time=self.time_range, samples=True)
+        # self.spool = dc.spool(patch_list)
+
+        # self.spool = self.spool.select(time=self.time_range, samples=True)
         # self.spool = self.spool.select(time=self.time_range)
 
         self.contents = self.spool.get_contents()
@@ -226,13 +238,13 @@ class CoherenceAnalysis:
     def run(self):
         """Implement the coherence analysis using initialized parameters."""
         # perform coherence calculation on each patch
-        map_out = coherence_instance.spool.map(
+        map_out = self.spool.map(
             lambda x: coherence(
-                x.data.T,
-                coherence_instance.sub_window_length,
-                coherence_instance.overlap,
-                sample_interval=coherence_instance.time_step,
-                method=coherence_instance.method,
+                x.select(**{self.channel_dim: self.distance_array}).data.T,
+                self.sub_window_length,
+                self.overlap,
+                sample_interval=self.time_step,
+                method=self.method,
             )
         )
 
