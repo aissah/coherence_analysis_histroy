@@ -37,13 +37,16 @@ Example:
 import argparse
 import os
 import pickle
+import sys
 from ast import literal_eval
 from datetime import datetime
 from pathlib import Path
 
 import dascore as dc
 import numpy as np
-from coherence_analysis.utils import coherence
+
+sys.path.append(os.path.join(os.path.dirname(""), os.pardir))
+from utils import coherence
 
 
 class CoherenceAnalysis:
