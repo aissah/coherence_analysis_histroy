@@ -489,8 +489,11 @@ def qr_coherence(norm_win_spectra: np.ndarray):
         )
         sorted_qr_approx = np.sort(qr_approx)[::-1]
         detection_significance[d] = sorted_qr_approx[0] / np.sum(
-            np.absolute(sorted_qr_approx)
+            sorted_qr_approx
         )
+        # detection_significance[d] = sorted_qr_approx[0] / np.sum(
+        #     np.absolute(sorted_qr_approx)
+        # )
         qr_approxs[d] = qr_approx
 
     return detection_significance, qr_approxs
