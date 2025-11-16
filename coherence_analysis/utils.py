@@ -449,7 +449,7 @@ def svd_coherence(norm_win_spectra: np.ndarray):
 
 def qr_coherence(norm_win_spectra: np.ndarray):
     """
-    Compute the detection significance from QR decomposition approximation of coherence.
+    Compute detection significance from QR decomposition approximation.
 
     The detection significance is the ratio of the
     largest eigenvalue to the sum of all eigenvalues. This method computes the
@@ -502,7 +502,7 @@ def qr_coherence(norm_win_spectra: np.ndarray):
 
 def rsvd_coherence(norm_win_spectra: np.ndarray, approx_rank: int = None):
     """
-    Compute the detection significance from randomized SVD approximation of coherence.
+    Compute detection significance from randomized SVD approximation.
 
     The detection significance is the ratio
     of the largest eigenvalue to the sum of all eigenvalues. This method
@@ -667,10 +667,10 @@ def coherence(
     data = np.random.rand(100, 1000)
     detection_significance = coherence(data, 10, 5, method='exact')
     """
-    METHODS = ["exact", "qr", "svd", "rsvd", "power", "qr iteration"]
-    assert (
-        method in METHODS
-    ), f"Invalid method: {method}; valid methods are: {METHODS}"
+    methods = ["exact", "qr", "svd", "rsvd", "power", "qr iteration"]
+    assert method in methods, (
+        f"Invalid method: {method}; valid methods are: {methods}"
+    )
 
     if method in ["power", "qr iteration"]:
         raise NotImplementedError(f"Method {method} not implemented yet.")
@@ -777,3 +777,207 @@ def frequency_filter(
     filtered_data = sosfiltfilt(sos, data)
 
     return filtered_data
+
+
+def stalta_freq(data, len_lt, len_st):
+    """
+    Compute the STALTA of data.
+
+    Parameters
+    ----------
+    data : array
+        1d or 2d array.
+    len_lt : int
+        Length of the long time average window in samples.
+    len_st : int
+        Length of the short time average window in samples.
+
+    Returns
+    -------
+    stalta : array
+        STALTA of data.
+    """
+    import scipy.signal as ss
+
+    if data.ndim == 1:
+        longtime_avg = ss.correlate(
+            np.absolute(data), np.ones(len_lt), mode="valid"
+        )
+        shorttime_avg = ss.correlate(
+            np.absolute(data[(len_lt - len_st) :]),
+            np.ones(len_st),
+            mode="valid",
+        )
+        stalta = (shorttime_avg * len_lt) / (longtime_avg * len_st)
+    elif data.ndim == 2:
+        nch, nsamples = data.shape
+        stalta = np.empty((nch, nsamples - len_lt + 1), dtype=np.float64)
+        longtime_stencil = np.ones(int(len_lt))
+        shorttime_stencil = np.ones(int(len_st))
+        for a in range(nch):
+            longtime_avg = ss.correlate(
+                np.absolute(data[a]), longtime_stencil, mode="valid"
+            )
+            shorttime_avg = ss.correlate(
+                np.absolute(data[a, int(len_lt - len_st) :]),
+                shorttime_stencil,
+                mode="valid",
+            )
+            stalta[a] = (shorttime_avg * len_lt) / (longtime_avg * len_st)
+
+    return stalta
+
+
+def get_noise(data, cov_len):
+    """
+    Generate correlated noise based on covariance length.
+
+    Parameters
+    ----------
+    data : array
+        2d array.
+    cov_len : int
+        Length of the covariance.
+
+    Returns
+    -------
+    noise : array
+        Correlated noise.
+    """
+    nr, nc = data.shape
+    noise_cov = np.eye(nr)
+    for i in range(1, cov_len + 1):
+        noise_cov += (
+            np.diag(np.ones(nr - i), -i) + np.diag(np.ones(nr - i), i)
+        ) * np.exp(-10 * i / cov_len)
+
+    noise = np.random.multivariate_normal(
+        mean=np.zeros(nr), cov=noise_cov, size=nc
+    )
+    noise = noise.T
+    noise = noise / np.max(np.abs(noise))
+
+    return noise
+
+
+def noisy_data(data, signal_to_noise, cov_len=5):
+    """
+    Add correlated noise to data based on signal to noise ratio.
+
+    Parameters
+    ----------
+    data : array
+        2d array.
+    signal_to_noise : float
+        Signal to noise ratio.
+    cov_len : int
+        Length of the covariance.
+
+    Returns
+    -------
+    noisy_data : array
+        Data with added correlated noise.
+    noise : array
+        Correlated noise.
+    """
+    noise = get_noise(data, cov_len)
+    noise = noise * np.max(np.abs(data)) / signal_to_noise
+    return data + noise, noise
+
+
+def noise_test(
+    coherence_data: np.ndarray,
+    method: str,
+    win_len: int,
+    overlap: float,
+    sample_interval: float,
+    signal_to_noise_list: list,
+    cov_len_list: list,
+    event_freq_range: list | tuple,
+    num_of_sims: int,
+):
+    """
+    Perform noise test on coherence data and return results as a dataframe.
+
+    Parameters
+    ----------
+    coherence_data : numpy array
+        Data for coherence analysis
+    method : str
+        Method to use for coherence analysis.
+    win_len : int
+        Length of the subwindows in seconds
+    overlap : float
+        Overlap between adjacent subwindows in seconds
+    sample_interval : float
+        Sample interval of the data.
+    signal_to_noise_list : list
+        List of signal to noise ratios to test.
+    cov_len_list : list
+        List of covariance lengths to test.
+    event_freq_range : list or tuple
+        Frequency range of the event.
+    num_of_sims : int
+        Number of simulations to run for statistical significance.
+    """
+    import pandas as pd
+
+    events_list = []
+    event_labels = []
+    signal_to_n_list = []
+    cov_len_df_list = []
+    for cov_len in cov_len_list:
+        for signal_to_noise in signal_to_noise_list:
+            for a in range(num_of_sims):
+                noisy_coherence_data, noise = noisy_data(
+                    coherence_data, signal_to_noise, cov_len=cov_len
+                )
+
+                event_detection, _, frequencies = coherence(
+                    noisy_coherence_data,
+                    win_len,
+                    overlap,
+                    sample_interval=sample_interval,
+                    method=method,
+                )
+
+                try:
+                    event_detection[event_freq_inds]
+                except NameError:
+                    event_freq_inds = (frequencies >= event_freq_range[0]) & (
+                        frequencies <= event_freq_range[1]
+                    )
+                    event_detection[event_freq_inds]
+
+                events_list.extend(event_detection[event_freq_inds])
+                event_labels.extend(["signal"] * np.sum(event_freq_inds))
+                signal_to_n_list.extend(
+                    [signal_to_noise] * np.sum(event_freq_inds)
+                )
+                cov_len_df_list.extend([cov_len] * np.sum(event_freq_inds))
+
+                noise_detection, _, _ = coherence(
+                    noise,
+                    win_len,
+                    overlap,
+                    sample_interval=sample_interval,
+                    method=method,
+                )
+
+                events_list.extend(noise_detection)
+                event_labels.extend(["noise"] * len(noise_detection))
+                signal_to_n_list.extend(
+                    [signal_to_noise] * len(noise_detection)
+                )
+                cov_len_df_list.extend([cov_len] * len(noise_detection))
+
+    df = pd.DataFrame(
+        {
+            "Signal_to_Noise": signal_to_n_list,
+            "Event": events_list,
+            "Event_Label": event_labels,
+            "Covariance_Length": cov_len_df_list,
+        }
+    )
+
+    return df
