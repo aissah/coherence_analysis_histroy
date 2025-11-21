@@ -1,8 +1,11 @@
 """Supporting Functions for coherence analysis of DAS data."""
 
+from typing import Optional
+
 import h5py
 import numpy as np
 import scipy.signal as ss
+import torch
 
 
 def load_brady_hdf5(file: str, normalize: bool = "no") -> tuple:
@@ -423,16 +426,17 @@ def svd_coherence(norm_win_spectra: np.ndarray):
         SVD method
 
     """
-    num_frames = norm_win_spectra.shape[0]
+    # num_frames = norm_win_spectra.shape[0]
     # num_frames = int(num_frames * resolution)
 
     # Custom line due to apparent lowpass in BH data:
     # only use 3/5 of the frames
     # num_frames = int(num_frames * 2 / 5)
 
-    num_subwindows = norm_win_spectra.shape[2]
+    # num_subwindows = norm_win_spectra.shape[2]
+    num_frames, num_channels, num_subwindows = norm_win_spectra.shape
     detection_significance = np.empty(num_frames)
-    svd_approxs = np.empty((num_frames, num_subwindows))
+    svd_approxs = np.empty((num_frames, min(num_channels, num_subwindows)))
 
     for d in range(num_frames):
         singular_values = np.linalg.svd(
@@ -441,7 +445,7 @@ def svd_coherence(norm_win_spectra: np.ndarray):
             hermitian=False,
         )
         svd_approx = singular_values**2
-        svd_approxs[d] = svd_approx[:num_subwindows]
+        svd_approxs[d] = svd_approx[: min(num_channels, num_subwindows)]
         detection_significance[d] = svd_approx[0] / np.sum(svd_approx)
 
     return detection_significance, svd_approxs
@@ -981,3 +985,191 @@ def noise_test(
     )
 
     return df
+
+
+def minimum_phase_wavelet(wavelet: np.ndarray) -> np.ndarray:
+    """
+    Convert arbitrary real wavelet to minimum-phase.
+
+    Uses log-amplitude Hilbert transform.
+
+    Parameters
+    ----------
+    wavelet : numpy array or torch tensor
+        Input wavelet in time domain
+    """
+    wavelet_spectrum = np.fft.fft(wavelet)
+
+    # amplitude spectrum
+    spectrum_amplitude = np.abs(wavelet_spectrum)
+    # avoid log(0)
+    spectrum_amplitude[spectrum_amplitude == 0] = 1e-12
+
+    # log amplitude
+    log_spectrum_amp = np.log(spectrum_amplitude)
+
+    # Hilbert transform → phase
+    # phase = np.imag(hilbert(logA))
+    phase = -np.imag(ss.hilbert(log_spectrum_amp))
+
+    # minimum phase spectrum
+    w_min = np.exp(log_spectrum_amp + 1j * phase)
+
+    # invert to time
+    w_min = np.real(np.fft.ifft(w_min))
+    return w_min
+
+
+def berlage_wavelet(
+    freq: float,
+    length: int,
+    dt: float,
+    peak_time: float,
+    n: int = 2,
+    alpha: float = 4.0,
+    phi: float = 0.0,
+    dtype: Optional[torch.dtype] = None,
+) -> torch.Tensor:
+    """
+    Create berlage wavelet.
+
+    Parameters
+    ----------
+    freq : float
+        Frequency of the wavelet in Hz
+    length : int
+        Length of the wavelet in samples
+    dt : float
+        Sampling interval in seconds
+    peak_time : float
+        Time of the peak amplitude in seconds
+    n : int, optional
+        Exponent parameter (default is 2)
+    alpha : float, optional
+        Damping factor (default is 4.0)
+    phi : float, optional
+        Phase shift in radians (default is 0.0)
+    dtype : torch.dtype, optional
+        Desired data type of the output tensor (default is None)
+    """
+    t = np.arange(0, length) * dt
+    t = t - peak_time
+    w = np.zeros_like(t)
+    tp = t[t >= 0]
+    w[t >= 0] = (
+        (tp**n) * np.exp(-alpha * tp) * np.cos(2 * np.pi * freq * tp + phi)
+    )
+    # w = w / np.max(np.abs(w))  # normalize
+
+    # NORMALIZE IN FREQUENCY DOMAIN
+    spectra = np.fft.rfft(w)
+    spectra /= np.max(np.abs(spectra))
+    w = np.fft.irfft(spectra)
+
+    w = np.array(w, dtype=np.float32)
+    w = torch.from_numpy(w)
+    return w.to(dtype)
+
+
+def gabor_wavelet(t: np.ndarray, fc: float, alpha: float) -> np.ndarray:
+    """
+    Create Gabor wavelet.
+
+    Parameters
+    ----------
+    t : numpy array
+        Time array
+    fc : float
+        Central frequency in Hz
+    alpha : float
+        Gaussian width parameter
+
+    Returns
+    -------
+    numpy array
+        Gabor wavelet evaluated at time t
+    """
+    return np.exp(-alpha * t**2) * np.cos(2 * np.pi * fc * t)
+
+
+def ormsby_wavelet(
+    freqs: list, length: int, dt: float, dtype: Optional[torch.dtype] = None
+) -> torch.Tensor:
+    """
+    Create Ormsby wavelet via analytic time-domain expression.
+
+    Parameters
+    ----------
+    freqs : list
+        List of four corner frequencies [f1, f2, f3, f4] in Hz
+    length : int
+        Length of the wavelet in samples
+    dt : float
+        Sampling interval in seconds
+    dtype : torch.dtype, optional
+        Desired data type of the output tensor (default is None)
+
+    Returns
+    -------
+    torch.Tensor
+        Ormsby wavelet of specified length and dtype.
+    """
+    # dt = 0.005
+    t = np.arange(-length // 2, length // 2) * dt
+    # t = torch.arange(float(length), dtype=dtype) * dt - length//2 * dt
+    f1, f2, f3, f4 = freqs
+    pi_mod = np
+
+    def sinc(x):
+        # return torch.sinc(x)
+        return np.sinc(x / pi_mod.pi)
+
+    term1 = pi_mod.pi * (f4) ** 2 * sinc(pi_mod.pi * f4 * t) ** 2
+    term2 = pi_mod.pi * (f3) ** 2 * sinc(pi_mod.pi * f3 * t) ** 2
+    term3 = pi_mod.pi * (f2) ** 2 * sinc(pi_mod.pi * f2 * t) ** 2
+    term4 = pi_mod.pi * (f1) ** 2 * sinc(pi_mod.pi * f1 * t) ** 2
+
+    out = (term1 - term2) / (f2 - f1) - (term3 - term4) / (f4 - f3)
+    # out = (term1 - term2) - (term3 - term4)
+    # out = out / np.max(np.abs(out))  # normalize
+    out = torch.from_numpy(out)
+    return out.to(dtype)
+
+
+def min_phase_ormsby_wavelet(
+    freqs: list,
+    length: int,
+    dt: float,
+    peak_time: float,
+    dtype: Optional[torch.dtype] = None,
+) -> torch.Tensor:
+    """
+    Create minimum-phase Ormsby wavelet.
+
+    Parameters
+    ----------
+    freqs : list
+        List of four corner frequencies [f1, f2, f3, f4] in Hz
+    length : int
+        Length of the wavelet in samples
+    dt : float
+        Sampling interval in seconds
+    peak_time : float
+        Time of the peak amplitude in seconds
+    dtype : torch.dtype, optional
+        Desired data type of the output tensor (default is None)
+    """
+    w = ormsby_wavelet(freqs, length, dt, dtype)
+    # w /= torch.max(torch.abs(w))  # normalize
+    w_min = minimum_phase_wavelet(w)
+    # w_min /= np.max(np.abs(w_min))  # normalize
+
+    # NORMALIZE IN FREQUENCY DOMAIN
+    spectra = np.fft.rfft(w_min)
+    spectra /= np.max(np.abs(spectra))
+    w_min = np.fft.irfft(spectra)
+
+    w_min = np.roll(w_min, int(peak_time / dt))
+    w_min = np.array(w_min, dtype=np.float32)
+    w_min = torch.from_numpy(w_min)
+    return w_min.to(dtype)
