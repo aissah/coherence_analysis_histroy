@@ -897,7 +897,7 @@ def noise_test(
     sample_interval: float,
     signal_to_noise_list: list,
     cov_len_list: list,
-    event_freq_range: list | tuple,
+    event_freq_range: int | list | tuple,
     num_of_sims: int,
 ):
     """
@@ -948,9 +948,15 @@ def noise_test(
                 try:
                     event_detection[event_freq_inds]
                 except NameError:
-                    event_freq_inds = (frequencies >= event_freq_range[0]) & (
-                        frequencies <= event_freq_range[1]
-                    )
+                    if isinstance(event_freq_range, int):
+                        event_freq_inds = (
+                            np.abs(frequencies - event_freq_range)
+                            <= frequencies[1] - frequencies[0]
+                        )
+                    else:
+                        event_freq_inds = (
+                            frequencies >= event_freq_range[0]
+                        ) & (frequencies <= event_freq_range[1])
                     event_detection[event_freq_inds]
 
                 events_list.extend(event_detection[event_freq_inds])
