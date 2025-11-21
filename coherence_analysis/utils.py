@@ -891,7 +891,6 @@ def noisy_data(data, signal_to_noise, cov_len=5):
 
 def noise_test(
     coherence_data: np.ndarray,
-    method: str,
     win_len: int,
     overlap: float,
     sample_interval: float,
@@ -926,7 +925,9 @@ def noise_test(
     """
     import pandas as pd
 
-    events_list = []
+    qr_events_list = []
+    svd_events_list = []
+    events_ratio_list = []
     event_labels = []
     signal_to_n_list = []
     cov_len_df_list = []
@@ -937,16 +938,28 @@ def noise_test(
                     coherence_data, signal_to_noise, cov_len=cov_len
                 )
 
-                event_detection, _, frequencies = coherence(
+                svd_event_detection, _, frequencies = coherence(
                     noisy_coherence_data,
                     win_len,
                     overlap,
                     sample_interval=sample_interval,
-                    method=method,
+                    method="svd",
+                )
+
+                qr_event_detection, _, frequencies = coherence(
+                    noisy_coherence_data,
+                    win_len,
+                    overlap,
+                    sample_interval=sample_interval,
+                    method="qr",
+                )
+
+                ratio_event_detection = (
+                    svd_event_detection / qr_event_detection
                 )
 
                 try:
-                    event_detection[event_freq_inds]
+                    qr_events_list.extend(qr_event_detection[event_freq_inds])
                 except NameError:
                     if isinstance(event_freq_range, int):
                         event_freq_inds = (
@@ -957,34 +970,53 @@ def noise_test(
                         event_freq_inds = (
                             frequencies >= event_freq_range[0]
                         ) & (frequencies <= event_freq_range[1])
-                    event_detection[event_freq_inds]
+                    qr_events_list.extend(qr_event_detection[event_freq_inds])
 
-                events_list.extend(event_detection[event_freq_inds])
+                svd_events_list.extend(svd_event_detection[event_freq_inds])
+                events_ratio_list.extend(
+                    ratio_event_detection[event_freq_inds]
+                )
+
                 event_labels.extend(["signal"] * np.sum(event_freq_inds))
                 signal_to_n_list.extend(
                     [signal_to_noise] * np.sum(event_freq_inds)
                 )
                 cov_len_df_list.extend([cov_len] * np.sum(event_freq_inds))
 
-                noise_detection, _, _ = coherence(
+                svd_noise_detection, _, _ = coherence(
                     noise,
                     win_len,
                     overlap,
                     sample_interval=sample_interval,
-                    method=method,
+                    method="svd",
                 )
 
-                events_list.extend(noise_detection)
-                event_labels.extend(["noise"] * len(noise_detection))
-                signal_to_n_list.extend(
-                    [signal_to_noise] * len(noise_detection)
+                qr_noise_detection, _, _ = coherence(
+                    noise,
+                    win_len,
+                    overlap,
+                    sample_interval=sample_interval,
+                    method="qr",
                 )
-                cov_len_df_list.extend([cov_len] * len(noise_detection))
+
+                qr_events_list.extend(qr_noise_detection)
+                svd_events_list.extend(svd_noise_detection)
+                events_ratio_list.extend(
+                    svd_noise_detection / qr_noise_detection
+                )
+
+                event_labels.extend(["noise"] * len(qr_noise_detection))
+                signal_to_n_list.extend(
+                    [signal_to_noise] * len(qr_noise_detection)
+                )
+                cov_len_df_list.extend([cov_len] * len(qr_noise_detection))
 
     df = pd.DataFrame(
         {
             "Signal_to_Noise": signal_to_n_list,
-            "Event": events_list,
+            "Standard_detection": svd_events_list,
+            "QR_detection": qr_events_list,
+            "Detection_Ratio": events_ratio_list,
             "Event_Label": event_labels,
             "Covariance_Length": cov_len_df_list,
         }
