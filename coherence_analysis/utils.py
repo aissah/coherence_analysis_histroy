@@ -962,7 +962,7 @@ def noise_test(
                     if isinstance(event_freq_range, int):
                         event_freq_inds = (
                             np.abs(frequencies - event_freq_range)
-                            <= frequencies[1] - frequencies[0]
+                            <= (frequencies[1] - frequencies[0]) / 2
                         )
                     else:
                         event_freq_inds = (
