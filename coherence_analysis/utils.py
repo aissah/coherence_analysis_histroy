@@ -1011,12 +1011,15 @@ def noise_test(
 
     df = pd.DataFrame(
         {
-            "Signal_to_Noise": signal_to_n_list,
-            "Standard_detection": svd_events_list,
-            "QR_detection": qr_events_list,
-            "Detection_ratio": events_ratio_list,
-            "Event_label": event_labels,
-            "Covariance_length": cov_len_df_list,
+            "Signal_to_Noise": signal_to_n_list * 3,
+            "Detection_Parameter": svd_events_list
+            + qr_events_list
+            + events_ratio_list,
+            "Method": ["svd"] * len(svd_events_list)
+            + ["qr"] * len(qr_events_list)
+            + ["ratio"] * len(events_ratio_list),
+            "Data_Label": event_labels * 3,
+            "Covariance_Length": cov_len_df_list * 3,
         }
     )
 
@@ -1097,7 +1100,7 @@ def berlage_wavelet(
     )
     # w = w / np.max(np.abs(w))  # normalize
 
-    # NORMALIZE IN FREQUENCY DOMAIN
+    # normalize in frequency domain
     spectra = np.fft.rfft(w)
     spectra /= np.max(np.abs(spectra))
     w = np.fft.irfft(spectra)
