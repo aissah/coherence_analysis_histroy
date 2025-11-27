@@ -906,8 +906,6 @@ def noise_test(
     ----------
     coherence_data : numpy array
         Data for coherence analysis
-    method : str
-        Method to use for coherence analysis.
     win_len : int
         Length of the subwindows in seconds
     overlap : float
@@ -1016,9 +1014,9 @@ def noise_test(
             "Signal_to_Noise": signal_to_n_list,
             "Standard_detection": svd_events_list,
             "QR_detection": qr_events_list,
-            "Detection_Ratio": events_ratio_list,
-            "Event_Label": event_labels,
-            "Covariance_Length": cov_len_df_list,
+            "Detection_ratio": events_ratio_list,
+            "Event_label": event_labels,
+            "Covariance_length": cov_len_df_list,
         }
     )
 
