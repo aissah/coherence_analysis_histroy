@@ -916,7 +916,7 @@ def noise_test(
         List of signal to noise ratios to test.
     cov_len_list : list
         List of covariance lengths to test.
-    event_freq_range : list or tuple
+    event_freq_range : int or list or tuple
         Frequency range of the event.
     num_of_sims : int
         Number of simulations to run for statistical significance.
