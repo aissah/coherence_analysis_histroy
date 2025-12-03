@@ -921,6 +921,263 @@ def get_event_frequency_indices(
     return event_freq_inds
 
 
+def single_detection_test(
+    coherence_data: np.ndarray,
+    win_len: int,
+    overlap: float,
+    sample_interval: float,
+    signal_to_noise: float,
+    cov_len: int,
+    event_freq_range: int | list | tuple = None,
+):
+    """
+    Perform noise test on coherence data and return results as a dataframe.
+
+    Parameters
+    ----------
+    coherence_data : numpy array
+        Data for coherence analysis
+    win_len : int
+        Length of the subwindows in seconds
+    overlap : float
+        Overlap between adjacent subwindows in seconds
+    sample_interval : float
+        Sample interval of the data.
+    signal_to_noise : float
+        Signal to noise ratio to test.
+    cov_len : int
+        Covariance length to test.
+    event_freq_range : int or list or tuple
+        Frequency range of the event.
+    num_of_sims : int
+        Number of simulations to run for statistical significance.
+    """
+    noisy_coherence_data, noise = noisy_data(
+        coherence_data, signal_to_noise, cov_len=cov_len
+    )
+
+    svd_event_detection, _, frequencies = coherence(
+        noisy_coherence_data,
+        win_len,
+        overlap,
+        sample_interval=sample_interval,
+        method="svd",
+    )
+
+    qr_event_detection, _, frequencies = coherence(
+        noisy_coherence_data,
+        win_len,
+        overlap,
+        sample_interval=sample_interval,
+        method="qr",
+    )
+
+    ratio_event_detection = svd_event_detection / qr_event_detection
+
+    if event_freq_range is not None:
+        event_freq_inds = get_event_frequency_indices(
+            frequencies, event_freq_range
+        )
+        qr_events_list = list(qr_event_detection[event_freq_inds])
+        svd_events_list = list(svd_event_detection[event_freq_inds])
+        events_ratio_list = list(ratio_event_detection[event_freq_inds])
+    else:
+        qr_events_list = list(qr_event_detection)
+        svd_events_list = list(svd_event_detection)
+        events_ratio_list = list(ratio_event_detection)
+
+    svd_noise_detection, _, _ = coherence(
+        noise,
+        win_len,
+        overlap,
+        sample_interval=sample_interval,
+        method="svd",
+    )
+
+    qr_noise_detection, _, _ = coherence(
+        noise,
+        win_len,
+        overlap,
+        sample_interval=sample_interval,
+        method="qr",
+    )
+
+    qr_noise_list = list(qr_noise_detection)
+    svd_noise_list = list(svd_noise_detection)
+    events_ratio_noise_list = list(svd_noise_detection / qr_noise_detection)
+
+    return (
+        svd_events_list,
+        qr_events_list,
+        events_ratio_list,
+        svd_noise_list,
+        qr_noise_list,
+        events_ratio_noise_list,
+    )
+
+
+def noise_test_sequential_sampling(
+    coherence_data: np.ndarray,
+    win_len: int,
+    overlap: float,
+    sample_interval: float,
+    signal_to_noise_list: list,
+    cov_len_list: list,
+    event_freq_range: int | list | tuple,
+    min_sims: int = 20,
+    max_sims: int = 100,
+    alpha: float = 0.05,
+    epsilon: float = 0.1,
+):
+    """
+    Perform noise test on coherence data and return results as a dataframe.
+
+    Parameters
+    ----------
+    coherence_data : numpy array
+        Data for coherence analysis
+    win_len : int
+        Length of the subwindows in seconds
+    overlap : float
+        Overlap between adjacent subwindows in seconds
+    sample_interval : float
+        Sample interval of the data.
+    signal_to_noise_list : list
+        List of signal to noise ratios to test.
+    cov_len_list : list
+        List of covariance lengths to test.
+    event_freq_range : int or list or tuple
+        Frequency range of the event.
+    min_sims : int
+        Minimum number of simulations to run for statistical significance.
+    max_sims : int
+        Maximum number of simulations to run for statistical significance.
+    alpha : float
+        Significance level for confidence interval.
+    epsilon : float
+        Acceptable margin of error for the estimate.
+
+    Returns
+    -------
+    df : pandas DataFrame
+    """
+    import pandas as pd
+    from scipy.stats import norm
+
+    z = norm.ppf(1 - alpha / 2)
+
+    qr_events_list = []
+    svd_events_list = []
+    events_ratio_list = []
+    event_labels = []
+    signal_to_n_list = []
+    cov_len_df_list = []
+    # event_freq_inds = None
+    for cov_len in cov_len_list:
+        for signal_to_noise in signal_to_noise_list:
+            for a in range(min_sims):
+                (
+                    svd_events_list,
+                    qr_events_list,
+                    events_ratio_list,
+                    svd_noise_list,
+                    qr_noise_list,
+                    events_ratio_noise_list,
+                ) = single_detection_test(
+                    coherence_data,
+                    win_len,
+                    overlap,
+                    sample_interval,
+                    signal_to_noise,
+                    cov_len,
+                    event_freq_range,
+                )
+
+            num_of_sims = min_sims
+            # Sequential sampling logic to determine if more sims are needed
+            while num_of_sims < max_sims:
+                # Compute means and variances
+                qr_event_var = np.var(qr_events_list)
+                qr_noise_var = np.var(qr_noise_list)
+                svd_event_var = np.var(svd_events_list)
+                svd_noise_var = np.var(svd_noise_list)
+
+                var_list = [
+                    qr_event_var,
+                    qr_noise_var,
+                    svd_event_var,
+                    svd_noise_var,
+                ]
+
+                # Calculate the margin of error
+                margin_of_error = z * np.sqrt(
+                    (svd_event_var / num_of_sims)
+                    + (svd_noise_var / num_of_sims)
+                )
+                margin_of_error = z * np.sqrt(max(var_list) / num_of_sims)
+
+                # Check if the margin of error is within the acceptable range
+                if (
+                    margin_of_error < epsilon
+                ):  # * abs(svd_event_mean - svd_noise_mean):
+                    break  # Stop if within acceptable range
+
+                # If not, perform another simulation
+                (
+                    new_svd_events,
+                    new_qr_events,
+                    new_events_ratio,
+                    new_svd_noise,
+                    new_qr_noise,
+                    new_events_ratio_noise,
+                ) = single_detection_test(
+                    coherence_data,
+                    win_len,
+                    overlap,
+                    sample_interval,
+                    signal_to_noise,
+                    cov_len,
+                    event_freq_range,
+                )
+
+                svd_events_list.extend(new_svd_events)
+                qr_events_list.extend(new_qr_events)
+                events_ratio_list.extend(new_events_ratio)
+                svd_noise_list.extend(new_svd_noise)
+                qr_noise_list.extend(new_qr_noise)
+                events_ratio_noise_list.extend(new_events_ratio_noise)
+
+                num_of_sims += 1
+
+            signal_to_n_list.extend(
+                [signal_to_noise]
+                * (len(svd_noise_list) + len(svd_events_list))
+                * num_of_sims
+            )
+        cov_len_df_list.extend(
+            [cov_len]
+            * (len(svd_noise_list) + len(svd_events_list))
+            * num_of_sims
+            * len(signal_to_noise_list)
+        )
+
+    df = pd.DataFrame(
+        {
+            "Signal_to_Noise": signal_to_n_list * 3,
+            "Detection_Parameter": svd_events_list
+            + qr_events_list
+            + events_ratio_list,
+            "Method": ["svd"] * len(svd_events_list)
+            + ["qr"] * len(qr_events_list)
+            + ["ratio"] * len(events_ratio_list),
+            "Data_Label": event_labels * 3,
+            "Covariance_Length": cov_len_df_list * 3,
+        }
+    )
+
+    return df
+
+
 def noise_test(
     coherence_data: np.ndarray,
     win_len: int,
