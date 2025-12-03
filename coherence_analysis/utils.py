@@ -889,6 +889,38 @@ def noisy_data(data, signal_to_noise, cov_len=5):
     return data + noise, noise
 
 
+def get_event_frequency_indices(
+    frequencies: np.ndarray,
+    event_freq_range: int | list | tuple,
+) -> np.ndarray:
+    """
+    Get indices of frequencies corresponding to the event frequency range.
+
+    Parameters
+    ----------
+    frequencies : numpy array
+        Array of frequencies.
+    event_freq_range : int or list or tuple
+        Frequency range of the event.
+
+    Returns
+    -------
+    numpy array
+        Indices of frequencies corresponding to the event frequency range.
+    """
+    if isinstance(event_freq_range, int):
+        event_freq_inds = (
+            np.abs(frequencies - event_freq_range)
+            <= (frequencies[1] - frequencies[0]) / 2
+        )
+    else:
+        event_freq_inds = (frequencies >= event_freq_range[0]) & (
+            frequencies <= event_freq_range[1]
+        )
+
+    return event_freq_inds
+
+
 def noise_test(
     coherence_data: np.ndarray,
     win_len: int,
@@ -929,6 +961,7 @@ def noise_test(
     event_labels = []
     signal_to_n_list = []
     cov_len_df_list = []
+    event_freq_inds = None
     for cov_len in cov_len_list:
         for signal_to_noise in signal_to_noise_list:
             for a in range(num_of_sims):
@@ -956,30 +989,36 @@ def noise_test(
                     svd_event_detection / qr_event_detection
                 )
 
-                try:
-                    qr_events_list.extend(qr_event_detection[event_freq_inds])
-                except NameError:
-                    if isinstance(event_freq_range, int):
-                        event_freq_inds = (
-                            np.abs(frequencies - event_freq_range)
-                            <= (frequencies[1] - frequencies[0]) / 2
-                        )
-                    else:
-                        event_freq_inds = (
-                            frequencies >= event_freq_range[0]
-                        ) & (frequencies <= event_freq_range[1])
-                    qr_events_list.extend(qr_event_detection[event_freq_inds])
+                if event_freq_inds is None:
+                    event_freq_inds = get_event_frequency_indices(
+                        frequencies, event_freq_range
+                    )
 
+                # try:
+                #    qr_events_list.extend(qr_event_detection[event_freq_inds])
+                # except NameError:
+                #    if isinstance(event_freq_range, int):
+                #        event_freq_inds = (
+                #            np.abs(frequencies - event_freq_range)
+                #            <= (frequencies[1] - frequencies[0]) / 2
+                #        )
+                #    else:
+                #        event_freq_inds = (
+                #            frequencies >= event_freq_range[0]
+                #        ) & (frequencies <= event_freq_range[1])
+                #    qr_events_list.extend(qr_event_detection[event_freq_inds])
+
+                qr_events_list.extend(qr_event_detection[event_freq_inds])
                 svd_events_list.extend(svd_event_detection[event_freq_inds])
                 events_ratio_list.extend(
                     ratio_event_detection[event_freq_inds]
                 )
 
                 event_labels.extend(["signal"] * np.sum(event_freq_inds))
-                signal_to_n_list.extend(
-                    [signal_to_noise] * np.sum(event_freq_inds)
-                )
-                cov_len_df_list.extend([cov_len] * np.sum(event_freq_inds))
+                # signal_to_n_list.extend(
+                #     [signal_to_noise] * np.sum(event_freq_inds)
+                # )
+                # cov_len_df_list.extend([cov_len] * np.sum(event_freq_inds))
 
                 svd_noise_detection, _, _ = coherence(
                     noise,
@@ -1004,10 +1043,22 @@ def noise_test(
                 )
 
                 event_labels.extend(["noise"] * len(qr_noise_detection))
-                signal_to_n_list.extend(
-                    [signal_to_noise] * len(qr_noise_detection)
-                )
-                cov_len_df_list.extend([cov_len] * len(qr_noise_detection))
+                # signal_to_n_list.extend(
+                #     [signal_to_noise] * len(qr_noise_detection)
+                # )
+                # cov_len_df_list.extend([cov_len] * len(qr_noise_detection))
+
+            signal_to_n_list.extend(
+                [signal_to_noise]
+                * (np.sum(event_freq_inds) + len(qr_noise_detection))
+                * num_of_sims
+            )
+        cov_len_df_list.extend(
+            [cov_len]
+            * (np.sum(event_freq_inds) + len(qr_noise_detection))
+            * num_of_sims
+            * len(signal_to_noise_list)
+        )
 
     df = pd.DataFrame(
         {
