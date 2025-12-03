@@ -1334,6 +1334,137 @@ def noise_test(
     return df
 
 
+def coherence_decay_test(
+    coherence_data: np.ndarray,
+    win_len: int,
+    overlap: float,
+    sample_interval: float,
+    signal_to_noise: float,
+    cov_len: int,
+    event_freq_range: int | list | tuple,
+    num_of_sims: int,
+):
+    """
+    Perform noise test on coherence data and return results as a dataframe.
+
+    Parameters
+    ----------
+    coherence_data : numpy array
+        Data for coherence analysis
+    win_len : int
+        Length of the subwindows in seconds
+    overlap : float
+        Overlap between adjacent subwindows in seconds
+    sample_interval : float
+        Sample interval of the data.
+    signal_to_noise : float
+        Signal to noise ratio to test.
+    cov_len : int
+        Covariance length to test.
+    event_freq_range : int or list or tuple
+        Frequency range of the event.
+    num_of_sims : int
+        Number of simulations to run for statistical significance.
+    """
+    import pandas as pd
+
+    nwins = None
+    for a in range(num_of_sims):
+        noisy_coherence_data, noise = noisy_data(
+            coherence_data, signal_to_noise, cov_len=cov_len
+        )
+
+        _, svds_signal, frequencies = coherence(
+            noisy_coherence_data,
+            win_len,
+            overlap,
+            sample_interval=sample_interval,
+            method="svd",
+        )
+
+        _, qrs_signal, frequencies = coherence(
+            noisy_coherence_data,
+            win_len,
+            overlap,
+            sample_interval=sample_interval,
+            method="qr",
+        )
+        if nwins is None:
+            nwins = qrs_signal.shape[1]
+            noise_nreps = qrs_signal.shape[0]
+        # ratio_event_detection = (
+        #     svd_event_detection / qr_event_detection
+        # )
+
+        try:
+            qr_decays = qrs_signal[event_freq_inds]
+            qr_decays_df = pd.DataFrame(qr_decays.flatten())
+            qr_decays_df["Method"] = "qr"
+            qr_decays_df["Data_Label"] = "signal"
+            qr_decays_df["Index"] = np.tile(np.arange(1, nwins + 1), nreps)
+            signal_decays_df = pd.concat(
+                [signal_decays_df, qr_decays_df], ignore_index=True
+            )
+        except NameError:
+            if isinstance(event_freq_range, int):
+                event_freq_inds = (
+                    np.abs(frequencies - event_freq_range)
+                    <= (frequencies[1] - frequencies[0]) / 2
+                )
+                nreps = 1
+            else:
+                event_freq_inds = (frequencies >= event_freq_range[0]) & (
+                    frequencies <= event_freq_range[1]
+                )
+                nreps = np.sum(event_freq_inds)
+            qr_decays = qrs_signal[event_freq_inds]
+            signal_decays_df = pd.DataFrame(qr_decays.flatten())
+            signal_decays_df["Method"] = "qr"
+            signal_decays_df["Data_Label"] = "signal"
+            signal_decays_df["Index"] = np.tile(np.arange(1, nwins + 1), nreps)
+
+        svd_decays = svds_signal[event_freq_inds]
+        svd_decays_df = pd.DataFrame(svd_decays.flatten())
+        svd_decays_df["Method"] = "svd"
+        svd_decays_df["Data_Label"] = "signal"
+        svd_decays_df["Index"] = np.tile(np.arange(1, nwins + 1), nreps)
+
+        signal_decays_df = pd.concat(
+            [signal_decays_df, svd_decays_df], ignore_index=True
+        )
+
+        _, svds_noise, _ = coherence(
+            noise,
+            win_len,
+            overlap,
+            sample_interval=sample_interval,
+            method="svd",
+        )
+
+        _, qrs_noise, _ = coherence(
+            noise,
+            win_len,
+            overlap,
+            sample_interval=sample_interval,
+            method="qr",
+        )
+
+        svd_decays_df = pd.DataFrame(svds_noise.flatten())
+        svd_decays_df["Method"] = "svd"
+        svd_decays_df["Data_Label"] = "noise"
+        svd_decays_df["Index"] = np.tile(np.arange(1, nwins + 1), noise_nreps)
+
+        qr_decays_df = pd.DataFrame(qrs_noise.flatten())
+        qr_decays_df["Method"] = "qr"
+        qr_decays_df["Data_Label"] = "noise"
+        qr_decays_df["Index"] = np.tile(np.arange(1, nwins + 1), noise_nreps)
+        signal_decays_df = pd.concat(
+            [signal_decays_df, svd_decays_df, qr_decays_df], ignore_index=True
+        )
+
+    return signal_decays_df
+
+
 def minimum_phase_wavelet(wavelet: np.ndarray) -> np.ndarray:
     """
     Convert arbitrary real wavelet to minimum-phase.
