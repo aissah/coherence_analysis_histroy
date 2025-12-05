@@ -1077,6 +1077,12 @@ def noise_test_sequential_sampling(
     cov_len_df_list = []
     for cov_len in cov_len_list:
         for signal_to_noise in signal_to_noise_list:
+            working_svd_events_list = []
+            working_qr_events_list = []
+            working_events_ratio_list = []
+            working_svd_noise_list = []
+            working_qr_noise_list = []
+            working_events_ratio_noise_list = []
             for a in range(min_sims):
                 (
                     new_svd_events,
@@ -1095,16 +1101,16 @@ def noise_test_sequential_sampling(
                     event_freq_range,
                 )
 
-            working_svd_events_list = list(new_svd_events)
-            working_qr_events_list = list(new_qr_events)
-            working_events_ratio_list = list(new_events_ratio)
-            working_svd_noise_list = list(new_svd_noise)
-            working_qr_noise_list = list(new_qr_noise)
-            working_events_ratio_noise_list = list(new_events_ratio_noise)
+                working_svd_events_list.extend(new_svd_events)
+                working_qr_events_list.extend(new_qr_events)
+                working_events_ratio_list.extend(new_events_ratio)
+                working_svd_noise_list.extend(new_svd_noise)
+                working_qr_noise_list.extend(new_qr_noise)
+                working_events_ratio_noise_list.extend(new_events_ratio_noise)
 
             num_of_sims = min_sims
             # Sequential sampling logic to determine if more sims are needed
-            while num_of_sims < max_sims:
+            while num_of_sims <= max_sims:
                 # Compute means and variances
                 qr_event_var = np.var(working_qr_events_list)
                 qr_noise_var = np.var(working_qr_noise_list)
@@ -1172,8 +1178,8 @@ def noise_test_sequential_sampling(
                 [cov_len]
                 * (len(working_qr_events_list) + len(working_qr_noise_list))
             )
-    event_labels.extend(["Signal"] * len(svd_events_list))
-    event_labels.extend(["Noise"] * len(svd_noise_list))
+            event_labels.extend(["Signal"] * len(working_svd_events_list))
+            event_labels.extend(["Noise"] * len(working_svd_noise_list))
     svd_events_list.extend(svd_noise_list)
     qr_events_list.extend(qr_noise_list)
     events_ratio_list.extend(events_ratio_noise_list)
