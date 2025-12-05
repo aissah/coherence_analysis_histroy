@@ -1163,19 +1163,19 @@ def noise_test_sequential_sampling(
 
     df = pd.DataFrame(
         {
-            "Signal_to_Noise": signal_to_n_list * 3,
-            "Detection_Parameter": svd_events_list
+            "Signal/Noise": signal_to_n_list * 3,
+            "Detection Parameter": svd_events_list
             + qr_events_list
             + events_ratio_list,
             "Method": ["svd"] * len(svd_events_list)
             + ["qr"] * len(qr_events_list)
             + ["ratio"] * len(events_ratio_list),
-            "Data_Label": event_labels * 3,
-            "Covariance_Length": cov_len_df_list * 3,
+            "Data Label": event_labels * 3,
+            "Covariance Length": cov_len_df_list * 3,
         }
     )
 
-    return df
+    return df, num_of_sims
 
 
 def noise_test(
