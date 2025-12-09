@@ -398,7 +398,7 @@ def exact_coherence(
     return detection_significance, eigenvalss, frequencies
 
 
-def svd_coherence(norm_win_spectra: np.ndarray):
+def svd_coherence(norm_win_spectra: np.ndarray, remove_center: str = None):
     """
     Compute the detection significance from SVD approximation of coherence.
 
@@ -415,6 +415,10 @@ def svd_coherence(norm_win_spectra: np.ndarray):
     resolution : float, optional
         Resolution of the detection significance from 0 to 1.
         The default is 1.
+    remove_center : str, optional
+        Central tendency to remove center from data. Options are
+        'mean' or 'median'.
+        The default is None.
 
     Returns
     -------
@@ -448,10 +452,15 @@ def svd_coherence(norm_win_spectra: np.ndarray):
         svd_approxs[d] = svd_approx[: min(num_channels, num_subwindows)]
         detection_significance[d] = svd_approx[0] / np.sum(svd_approx)
 
+    if remove_center == "mean":
+        detection_significance -= np.mean(detection_significance)
+    elif remove_center == "median":
+        detection_significance -= np.median(detection_significance)
+
     return detection_significance, svd_approxs
 
 
-def qr_coherence(norm_win_spectra: np.ndarray):
+def qr_coherence(norm_win_spectra: np.ndarray, remove_center: str = None):
     """
     Compute detection significance from QR decomposition approximation.
 
@@ -465,6 +474,10 @@ def qr_coherence(norm_win_spectra: np.ndarray):
     ----------
     norm_win_spectra : numpy array
         Normalized windowed spectra
+    remove_center : str, optional
+        Central tendency to remove center from data. Options are
+        'mean' or 'median'.
+        The default is None.
 
     Returns
     -------
@@ -501,10 +514,19 @@ def qr_coherence(norm_win_spectra: np.ndarray):
         # )
         qr_approxs[d] = qr_approx
 
+    if remove_center == "mean":
+        detection_significance -= np.mean(detection_significance)
+    elif remove_center == "median":
+        detection_significance -= np.median(detection_significance)
+
     return detection_significance, qr_approxs
 
 
-def rsvd_coherence(norm_win_spectra: np.ndarray, approx_rank: int = None):
+def rsvd_coherence(
+    norm_win_spectra: np.ndarray,
+    approx_rank: int = None,
+    remove_center: str = None,
+):
     """
     Compute detection significance from randomized SVD approximation.
 
@@ -523,6 +545,10 @@ def rsvd_coherence(norm_win_spectra: np.ndarray, approx_rank: int = None):
         The default is 1.
     approx_rank : int, optional
         Approximate rank for the randomized SVD method.
+        The default is None.
+    remove_center : str, optional
+        Central tendency to remove center from data. Options are
+        'mean' or 'median'.
         The default is None.
 
     Returns
@@ -556,6 +582,11 @@ def rsvd_coherence(norm_win_spectra: np.ndarray, approx_rank: int = None):
         rsvd_approx = singular_values**2
         rsvd_approxs[d] = rsvd_approx
         detection_significance[d] = rsvd_approx[0] / np.sum(rsvd_approx)
+
+    if remove_center == "mean":
+        detection_significance -= np.mean(detection_significance)
+    elif remove_center == "median":
+        detection_significance -= np.median(detection_significance)
 
     return detection_significance, rsvd_approxs
 
@@ -634,6 +665,7 @@ def coherence(
     approx_rank: int = 10,
     max_freq: float = None,
     min_freq: float = 0,
+    remove_center: str = None,
 ):
     """
     Compute a detection significance using coherence.
@@ -659,6 +691,10 @@ def coherence(
     approx_rank : int, optional
         Approximate rank for the randomized SVD method.
         The default is 10.
+    remove_center : str, optional
+        Central tendency to remove center from data. Options are
+        'mean' or 'median'.
+        The default is None.
 
     Returns
     -------
@@ -688,6 +724,7 @@ def coherence(
             resolution=resolution,
             max_freq=max_freq,
             min_freq=min_freq,
+            remove_center=remove_center,
         )
     else:
         norm_win_spectra, frequencies = normalised_windowed_spectra(
@@ -704,12 +741,18 @@ def coherence(
         frequencies = frequencies[::freq_interval]
 
         if method == "qr":
-            detection_significance, eigenvals = qr_coherence(norm_win_spectra)
+            detection_significance, eigenvals = qr_coherence(
+                norm_win_spectra, remove_center=remove_center
+            )
         elif method == "svd":
-            detection_significance, eigenvals = svd_coherence(norm_win_spectra)
+            detection_significance, eigenvals = svd_coherence(
+                norm_win_spectra, remove_center=remove_center
+            )
         elif method == "rsvd":
             detection_significance, eigenvals = rsvd_coherence(
-                norm_win_spectra, approx_rank=approx_rank
+                norm_win_spectra,
+                approx_rank=approx_rank,
+                remove_center=remove_center,
             )
 
         return detection_significance, eigenvals, frequencies
