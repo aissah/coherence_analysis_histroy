@@ -32,6 +32,7 @@ import os
 import pickle
 import sys
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import utils.utils as func
@@ -100,7 +101,7 @@ def _next_data_window(
 
     while window_deficit > 0 and next_index < num_files - 1:
         next_index += 1  # index of the next file to read data from
-        next_data, _ = func.loadBradyHShdf5(
+        next_data, _ = func.load_brady_hdf5(
             data_files[next_index],
             normalize="no",
         )
@@ -277,6 +278,8 @@ if __name__ == "__main__":
         flush=True,
     )
 
+    # Create the result directory if it does not exist
+    Path(save_location).mkdir(parents=True, exist_ok=True)
     # save the results of detection significance, eigenvalues, and metadata to
     # different files
     savename = os.path.join(
