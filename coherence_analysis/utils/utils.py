@@ -27,7 +27,6 @@ def load_brady_hdf5(file: str, normalize: bool = "no") -> tuple:
         beginning time of the survey.
 
     """
-    print(f"Loading data from {file}...")
     with h5py.File(file, "r") as open_file:
         dataset = open_file["das"]
         time = open_file["t"]
