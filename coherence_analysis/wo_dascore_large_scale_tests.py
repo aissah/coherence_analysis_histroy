@@ -34,8 +34,7 @@ import sys
 from datetime import datetime
 
 import numpy as np
-
-import coherence_analysis.utils.utils as func
+import utils.utils as func
 
 
 def _next_data_window(
@@ -47,7 +46,7 @@ def _next_data_window(
 ):
     """
     Load the next data window from the data files.
-    
+
     This function is used to load the next window of data from the list of
     data files. It continues to read data from the files until the window
     length is reached. The function returns the data, the index of the next
@@ -77,7 +76,6 @@ def _next_data_window(
         index we stopped reading data from file "next_index"
 
     """
-
     num_files = len(data_files)
     total_window_length = averaging_window_length * samples_per_sec
     data, _ = func.load_brady_hdf5(data_files[next_index], normalize="no")
