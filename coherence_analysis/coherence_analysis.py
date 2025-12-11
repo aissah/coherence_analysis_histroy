@@ -202,6 +202,7 @@ class CoherenceAnalysis:
         # read the data files using the spool function from dascore
         self.spool = dc.spool(self.data_path)
         # get the time step from the spool
+        print(self.spool)
         try:
             self.time_step = self.spool.get_contents()["time_step"].iloc[0]
         except (KeyError, IndexError):
