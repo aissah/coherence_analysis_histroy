@@ -4,7 +4,8 @@ Test coherence analyses a directory of DAS data.
 This version uses dascore to read files and hence requires to given data to be
 readable by dascore. Can be ran as:
 python coherence_analysis.py <method> <data_location> <averaging_window_length>
-    <sub_window_length> <overlap: optional, flag:-o> <time_range(optional): flag -t>
+    <sub_window_length> <overlap: optional, flag:-o>
+    <time_range(optional): flag -t>
     <channel_range(optional): flag:-ch> <channel_offset(optional): flag:-ds>
     <time_step(optional): flag:-dt> <result_path(optional): flag:-r>
 
@@ -47,7 +48,8 @@ import dascore as dc
 import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(""), os.pardir))
-from coherence_analysis.utils.utils import coherence
+# from coherence_analysis.utils.utils import coherence
+from utils.utils import coherence
 
 
 class CoherenceAnalysis:
@@ -72,7 +74,7 @@ class CoherenceAnalysis:
             - sub_window_length: Sub-window length in seconds
             - overlap: Overlap in seconds
             - time_step: Seconds per sample
-            - method: Method to use for coherence analysis 
+            - method: Method to use for coherence analysis
             (one of "exact", "qr", "svd", "rsvd")
             - result_path: Directory to save results
 
@@ -97,7 +99,10 @@ class CoherenceAnalysis:
             self.method = args["method"]
 
             if self.method not in self.methods:
-                error_msg = f"Method {self.method} not available for coherence analysis"
+                error_msg = f"""
+                Method {self.method} not available for coherence analysis.
+                Available methods are: {self.methods}
+                """
                 raise ValueError(error_msg)
 
             print(f"""Initialized with the following parameters:
@@ -128,7 +133,7 @@ class CoherenceAnalysis:
             self.save_location = os.path.join(
                 os.path.dirname(__file__), os.pardir, "data", "results"
             )
-            print(f"""No arguments provided. These attributes are set to 
+            print(f"""No arguments provided. These attributes are set to
                 default values:
 
                 data_path: {self.data_path}
@@ -151,8 +156,8 @@ class CoherenceAnalysis:
         if channel_dim is None:
             dims = first_patch.dims
             print(f"The data has the following dimensions: {dims}")
-            print(f"""Channels will be grouped based on the '{dims[1]}' 
-                  dimension. If another dimension is desired, use the 
+            print(f"""Channels will be grouped based on the '{dims[1]}'
+                  dimension. If another dimension is desired, use the
                   method, '_set_channel_dim()' to set it.""")
             channel_dim = dims[1]
         self.channel_dim = channel_dim
@@ -171,13 +176,15 @@ class CoherenceAnalysis:
         except AttributeError:
             print("Error: ")
             print(
-                f"The dimension '{self.channel_dim}' does not exist in the data."
+                f"""
+                The dimension '{self.channel_dim}' does not exist in the data.
+                """
             )
             print("Available dimensions are:")
             for dim in dims:
                 print(f"- {dim}")
             raise AttributeError(
-                f"The dimension '{self.channel_dim}' does not exist in the data."
+                f"The dimension '{self.channel_dim}' does not exist in data."
             )
 
         channels = np.arange(
@@ -361,14 +368,16 @@ def parse_args():
         "-t",
         "--time_range",
         type=str,
-        help="Range of time to use for coherence analysis (in Python list format)",
+        help="Range of time to use for coherence analysis "
+        "(in Python list format)",
         default="(..., ...)",
     )
     parser.add_argument(
         "-ch",
         "--channel_range",
         type=str,
-        help="Range of channels to use for coherence analysis (in Python list format)",
+        help="Range of channels to use for coherence analysis "
+        " (in Python list format)",
         default="(0, ...)",
     )
     parser.add_argument(
@@ -422,8 +431,8 @@ if __name__ == "__main__":
 
     # save the results
     print(
-        f"Finished in: {datetime.now() - start_time} for {coherence_instance.method} method."
-        " Saving results...",
+        f"""Finished in: {datetime.now() - start_time} for"
+         {coherence_instance.method} method. Saving results...""",
         flush=True,
     )
     coherence_instance.save_results()
