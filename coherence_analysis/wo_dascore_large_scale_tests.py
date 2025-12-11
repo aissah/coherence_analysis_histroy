@@ -242,7 +242,7 @@ if __name__ == "__main__":
         )
 
         if data.shape[1] == averaging_window_length * samples_per_sec:
-            detection_significance, eig_estimates = func.coherence(
+            detection_significance, eig_estimates, _ = func.coherence(
                 data,
                 sub_window_length,
                 overlap,
