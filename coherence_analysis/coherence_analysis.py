@@ -41,6 +41,7 @@ import os
 import pickle
 import sys
 from ast import literal_eval
+from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime
 from pathlib import Path
 
@@ -261,19 +262,21 @@ class CoherenceAnalysis:
             method=self.method,
         )
 
-    def run(self):
+    def run(self, client=None):
         """Implement the coherence analysis using initialized parameters."""
         # perform coherence calculation on each patch
-        map_out = self.spool.map(
-            lambda x: coherence(
-                x.select(**{self.channel_dim: self.distance_array}).data.T,
-                self.sub_window_length,
-                self.overlap,
-                sample_interval=self.time_step,
-                method=self.method,
+        if client is not None:
+            map_out = client.map(self.single_patch_coherence, self.spool)
+        else:
+            map_out = self.spool.map(
+                lambda x: coherence(
+                    x.select(**{self.channel_dim: self.distance_array}).data.T,
+                    self.sub_window_length,
+                    self.overlap,
+                    sample_interval=self.time_step,
+                    method=self.method,
+                )
             )
-        )
-
         self.detection_significance = np.stack(
             [a[0] for a in map_out if a is not None], axis=-1
         )
@@ -417,25 +420,37 @@ def parse_args():
             os.path.dirname(__file__), os.pardir, "data/results"
         ),
     )
+    parser.add_argument(
+        "-p",
+        "--parallel",
+        help="Whether to parallelize the computation",
+        action="store_true",
+    )
 
     return parser.parse_args()
 
 
 if __name__ == "__main__":
-    # available_threads = os.environ.get("SLURM_CPUS_PER_TASK")
-    # if available_threads is None:
-    #     available_threads = os.cpu_count()
-
-    # print(f"Available threads: {available_threads}", flush=True)
-    # max_threads = max(int(int(available_threads) // 2), 1)
-    # print(f"Using {max_threads} threads for parallel processing.",flush=True)
-    # client = ProcessPoolExecutor(max_workers=max_threads)
-    # # record start time
+    # record start time
     start_time = datetime.now()
 
     # Parse arguments
     args = parse_args()
     print(f"Arguments read from command line: {args}", flush=True)
+
+    if args.parallel:
+        available_threads = os.environ.get("SLURM_CPUS_PER_TASK")
+        if available_threads is None:
+            available_threads = os.cpu_count()
+
+        print(f"Available threads: {available_threads}", flush=True)
+        max_threads = max(int(int(available_threads) // 2), 1)
+        print(
+            f"Using {max_threads} threads for parallel processing.", flush=True
+        )
+        client = ProcessPoolExecutor(max_workers=max_threads)
+    else:
+        client = None
 
     # Initialize the coherence_analysis instance
     coherence_instance = CoherenceAnalysis(vars(args))
@@ -449,7 +464,7 @@ if __name__ == "__main__":
 
     # run the coherence analysis
     print("Running coherence analysis...", flush=True)
-    coherence_instance.run()
+    coherence_instance.run(client=client)
 
     # save the results
     print(
