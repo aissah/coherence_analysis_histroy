@@ -1,7 +1,8 @@
 """
-This python file is to test coherence analyses for a larger dataset. The was
-written for some data from Brady Geothermal DAS experiment and is in hdf5
-format. Can be ran as:
+Test coherence analyses for a larger dataset.
+
+The was written for some data from Brady Geothermal DAS experiment
+and is in hdf5 format. Can be ran as:
 TO DO: Add output directory as an argument
 python large_scale_test.py <data_location> <averaging_window_length>
     <sub_window_length> <overlap> <first_channel> <channel_offset>
@@ -45,11 +46,13 @@ def _next_data_window(
     start_sample_index: int = 0,
 ):
     """
-    Load the next data window from the data files. This function is used to
-    load the next window of data from the list of data files. It continues
-    to read data from the files until the window length is reached. The
-    function returns the data, the index of the next file to read data from,
-    and the index with the file at which we stopped reading.
+    Load the next data window from the data files.
+    
+    This function is used to load the next window of data from the list of
+    data files. It continues to read data from the files until the window
+    length is reached. The function returns the data, the index of the next
+    file to read data from, and the index with the file at which we stopped
+    reading.
 
     Parameters
     ----------
@@ -74,6 +77,7 @@ def _next_data_window(
         index we stopped reading data from file "next_index"
 
     """
+
     num_files = len(data_files)
     total_window_length = averaging_window_length * samples_per_sec
     data, _ = func.load_brady_hdf5(data_files[next_index], normalize="no")

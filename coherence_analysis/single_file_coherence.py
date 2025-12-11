@@ -1,14 +1,21 @@
 r"""
-Computes the detection significance through coherence of a single file using various methods for coherence analysis
-This was written with the intention of comparing the performance of various ways of doing coherence analysis
-The results are saved to a file for later analysis
+Computes the coherence detection significance of a single file.
+
+This was written with the intention of comparing the performance of various
+ways of doing coherence analysis. The results are saved to a file for later
+analysis.
 The data intended for use here is from Brady Hotspring and is in hdf5 format.
 
 Can be run from the command line as follows:
-python single_file_coerence.py <file> <averaging_window_length> <sub_window_length> <overlap> <first_channel> <num_channels> <samples_per_sec> <channel_offset> <method>
+python single_file_coherence.py <file> <averaging_window_length>
+    <sub_window_length> <overlap> <first_channel> <num_channels>
+    <samples_per_sec> <channel_offset> <method>
 Example:
-- python single_file_coerence.py "D:\CSM\Mines_Research\Test_data\Brady Hotspring\PoroTomo_iDAS16043_160312000048.h5" 0 2 0 3100 200 1000 2000 exact
-- python single_file_coherence.py "D:\CSM\Mines_Research\Test_data\Brady Hotspring\PoroTomo_iDAS16043_160314083848.h5" 0 2 0 3100 200 1000 2000 qr
+- dir = "D:/CSM/Mines_Research/Test_data/Brady Hotspring/"
+- python single_file_coherence.py dir + "PoroTomo_iDAS16043_160312000048.h5"
+    0 2 0 3100 200 1000 2000 exact
+- python single_file_coherence.py dir + "PoroTomo_iDAS16043_160314083848.h5"
+    0 2 0 3100 200 1000 2000 qr
 """
 
 import pickle
@@ -37,9 +44,8 @@ if __name__ == "__main__":
     channel_offset = int(sys.argv[8])  # channel offset
     method = sys.argv[9]  # method to use for coherence analysis
 
-    file = Path(
-        file
-    )  # r"D:\CSM\Mines_Research\Test_data\Brady Hotspring\PoroTomo_iDAS16043_160312000048.h5"
+    file = Path(file)
+    # r"D:\CSM\Mines_Research\Test_data\Brady Hotspring\PoroTomo_iDAS16043_160312000048.h5"
     data, _ = func.load_brady_hdf5(file, normalize="no")
 
     if method in METHODS:  # method == "qr":
@@ -65,7 +71,8 @@ if __name__ == "__main__":
 
     # print(detection_significance.shape, flush=True)
     print(
-        f"Finished in: {datetime.now() - start_time} for {method} method. Saving to file...",
+        f"""Finished in: {datetime.now() - start_time} for {method} method.
+        Saving to file...""",
         flush=True,
     )
     savename = (

@@ -28,7 +28,8 @@ The script will then go through the files in the directory provided that fall
 within the ranges specified and perform coherence analysis on the data. The
 results are saved to a file for later analysis.
 Example:
-- python coherence_analysis.py exact "D:\CSM\Mines_Research\Test_data\Port_Angeles"
+- python coherence_analysis.py exact
+    "D:\CSM\Mines_Research\Test_data\Port_Angeles"
     60 5 -o 0 -t "('06/01/23 07:32:09', ...)" -ch "(..., ...)"
     -ds 1 -dt 0.002 -r "D:\CSM\Mines_Research\Test_data\Port_Angeles\results"
 
@@ -62,20 +63,23 @@ class CoherenceAnalysis:
             Dictionary of input parameters, by default None
             Expected keys are:
             - data_path: Path to the directory containing the data files
-            - time_range: Range of time to use for coherence analysis (in list format)
-            - channel_range: Range of channels to use for coherence analysis (in tuple format)
+            - time_range: Range of time to use for coherence analysis
+            (in list format)
+            - channel_range: Range of channels to use for coherence analysis
+            (in tuple format)
             - channel_offset: Channels to skip in between
             - averaging_window_length: Averaging window length in seconds
             - sub_window_length: Sub-window length in seconds
             - overlap: Overlap in seconds
             - time_step: Seconds per sample
-            - method: Method to use for coherence analysis (one of "exact", "qr", "svd", "rsvd")
+            - method: Method to use for coherence analysis 
+            (one of "exact", "qr", "svd", "rsvd")
             - result_path: Directory to save results
 
         """
         self.methods = ["exact", "qr", "svd", "rsvd"]
         if args is not None:
-            # Convert time_range and channel_range from strings to lists using literal_eval
+            # Convert time_range and channel_range from strings to lists
             self.time_range = [
                 datetime.strptime(a, "%m/%d/%y %H:%M:%S") if a != ... else ...
                 for a in literal_eval(args["time_range"])
@@ -124,21 +128,22 @@ class CoherenceAnalysis:
             self.save_location = os.path.join(
                 os.path.dirname(__file__), os.pardir, "data", "results"
             )
-            print(f"""No arguments provided. These attributes are set to default values:
+            print(f"""No arguments provided. These attributes are set to 
+                default values:
 
-            data_path: {self.data_path}
-            time_range: {self.time_range}
-            channel_range: {self.channel_range}
-            channel_offset: {self.channel_offset}
-            averaging_window_length: {self.averaging_window_length}
-            sub_window_length: {self.sub_window_length}
-            overlap: {self.overlap}
-            time_step: {self.time_step}
-            method: {self.method}
-            save_location: {self.save_location}
+                data_path: {self.data_path}
+                time_range: {self.time_range}
+                channel_range: {self.channel_range}
+                channel_offset: {self.channel_offset}
+                averaging_window_length: {self.averaging_window_length}
+                sub_window_length: {self.sub_window_length}
+                overlap: {self.overlap}
+                time_step: {self.time_step}
+                method: {self.method}
+                save_location: {self.save_location}
 
-            These can be set manually to desired values.
-            """)
+                These can be set manually to desired values.
+                """)
 
     def _set_channel_dim(self, channel_dim: str = None):
         """Set the channel dimension to 'channel' if not already set."""
@@ -146,8 +151,9 @@ class CoherenceAnalysis:
         if channel_dim is None:
             dims = first_patch.dims
             print(f"The data has the following dimensions: {dims}")
-            print(f"""Channels will be grouped based on the '{dims[1]}' dimension.
-                  If another dimension is desired, use the method, '_set_channel_dim()' to set it.""")
+            print(f"""Channels will be grouped based on the '{dims[1]}' 
+                  dimension. If another dimension is desired, use the 
+                  method, '_set_channel_dim()' to set it.""")
             channel_dim = dims[1]
         self.channel_dim = channel_dim
 
@@ -184,7 +190,7 @@ class CoherenceAnalysis:
         self.distance_array = distance_coords[channels]
 
     def read_data(self):
-        """Read the data files and subselect according to input parameters using dascore."""
+        """Read the files and subselect using dascore."""
         # read the data files using the spool function from dascore
         self.spool = dc.spool(self.data_path)
         # get the time step from the spool
