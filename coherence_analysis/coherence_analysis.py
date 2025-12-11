@@ -204,7 +204,7 @@ class CoherenceAnalysis:
         # get the time step from the spool
         try:
             self.time_step = self.spool.get_contents()["time_step"].iloc[0]
-        except KeyError:
+        except (KeyError, IndexError):
             if self.time_step is None:
                 raise ValueError(
                     "Time step not found in data or input parameters"
