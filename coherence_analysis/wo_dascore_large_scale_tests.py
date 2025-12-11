@@ -174,7 +174,7 @@ if __name__ == "__main__":
             [
                 os.path.join(dir_path, file_name)
                 for file_name in file_names
-                if ".h5" in file_name
+                if ".h5" in file_name and file_name[0] != "."
             ]
         )
 
