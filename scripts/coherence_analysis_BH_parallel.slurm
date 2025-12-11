@@ -18,7 +18,7 @@ declare -a arr=("qr" "svd")
 for method in "${arr[@]}";
 do
    echo "Working on directory: $dir"
-   srun --exclusive --ntasks=1 python ../coherence_analysis/coherence_analysis.py "$method" "$dir" 60 1 -ch "(4500, 6500)" -ds 5 -dt 0.001 &
+   srun --exclusive --ntasks=1 python ../coherence_analysis/coherence_analysis.py "$method" "$dir" 60 1 -ch "(4500, 6500)" -ds 5 -dt 0.001 -p &
 done
 wait
 
