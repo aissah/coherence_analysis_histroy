@@ -33,7 +33,8 @@ import sys
 from datetime import datetime
 
 import numpy as np
-import coherence_analysis.utils as func
+
+import coherence_analysis.utils.utils as func
 
 
 def _next_data_window(
@@ -269,7 +270,7 @@ if __name__ == "__main__":
             )
 
     print(
-        f"Finished in: {datetime.now()-start_time} for {method} method."
+        f"Finished in: {datetime.now() - start_time} for {method} method."
         " Saving to file...",
         flush=True,
     )

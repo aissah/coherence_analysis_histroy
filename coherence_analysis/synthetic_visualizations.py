@@ -9,7 +9,7 @@ from datetime import datetime
 import torch
 
 sys.path.append(os.path.join(os.path.dirname(""), os.pardir))
-import utils as f
+import coherence_analysis.utils.synthetic_tests_utils as f
 
 
 def parse_args():

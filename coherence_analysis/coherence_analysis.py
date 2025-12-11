@@ -46,7 +46,7 @@ import dascore as dc
 import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(""), os.pardir))
-from utils import coherence
+from coherence_analysis.utils.utils import coherence
 
 
 class CoherenceAnalysis:
@@ -55,6 +55,7 @@ class CoherenceAnalysis:
     def __init__(self, args: dict = None):
         """
         Initialize the coherence analysis with input parameters.
+
         Parameters
         ----------
         args : dict, optional
@@ -145,7 +146,7 @@ class CoherenceAnalysis:
         if channel_dim is None:
             dims = first_patch.dims
             print(f"The data has the following dimensions: {dims}")
-            print(f"""Channels will be grouped based on the '{dims[1]}' dimension. 
+            print(f"""Channels will be grouped based on the '{dims[1]}' dimension.
                   If another dimension is desired, use the method, '_set_channel_dim()' to set it.""")
             channel_dim = dims[1]
         self.channel_dim = channel_dim
@@ -162,7 +163,7 @@ class CoherenceAnalysis:
             print(f"Channels will be selected from {start_ch} to {end_ch}.")
             self.channel_range = (start_ch, end_ch)
         except AttributeError:
-            print(f"Error: ")
+            print("Error: ")
             print(
                 f"The dimension '{self.channel_dim}' does not exist in the data."
             )
@@ -172,7 +173,7 @@ class CoherenceAnalysis:
             raise AttributeError(
                 f"The dimension '{self.channel_dim}' does not exist in the data."
             )
-        
+
         channels = np.arange(
             self.channel_range[0],
             self.channel_range[1],
@@ -300,16 +301,14 @@ class CoherenceAnalysis:
 
         savename = os.path.join(
             self.save_location,
-            f"{self.method}_eig_estimatess_"
-            f"{start_time}_"
-            f"{end_time}.pkl",
+            f"{self.method}_eig_estimatess_{start_time}_{end_time}.pkl",
         )
         with open(savename, "wb") as f:
             pickle.dump(self.eig_estimates, f)
 
         savename = os.path.join(
             self.save_location,
-            f"{self.method}_metadata_" f"{start_time}_" f"{end_time}.pkl",
+            f"{self.method}_metadata_{start_time}_{end_time}.pkl",
         )
         with open(savename, "wb") as f:
             pickle.dump(metadata, f)
@@ -417,7 +416,7 @@ if __name__ == "__main__":
 
     # save the results
     print(
-        f"Finished in: {datetime.now()-start_time} for {coherence_instance.method} method."
+        f"Finished in: {datetime.now() - start_time} for {coherence_instance.method} method."
         " Saving results...",
         flush=True,
     )

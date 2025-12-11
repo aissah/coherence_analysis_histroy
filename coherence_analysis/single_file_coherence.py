@@ -16,7 +16,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-import coherence_analysis.utils as func
+import coherence_analysis.utils.utils as func
 
 METHODS = ["exact", "qr", "svd", "rsvd", "power", "qr iteration"]
 save_location = Path(
@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     # print(detection_significance.shape, flush=True)
     print(
-        f"Finished in: {datetime.now()-start_time} for {method} method. Saving to file...",
+        f"Finished in: {datetime.now() - start_time} for {method} method. Saving to file...",
         flush=True,
     )
     savename = (
