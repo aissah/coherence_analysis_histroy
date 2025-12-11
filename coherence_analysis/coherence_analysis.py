@@ -209,7 +209,9 @@ class CoherenceAnalysis:
                     "Time step not found in data or input parameters"
                 )
         # chunk the spool into averaging_window length
-        self.spool = self.spool.chunk(time=self.averaging_window_length)
+        self.spool = self.spool.chunk(
+            time=self.averaging_window_length, keep_partial=True
+        )
 
         self.spool = self.spool.select(time=self.time_range, samples=True)
 
@@ -249,6 +251,16 @@ class CoherenceAnalysis:
         self.contents = self.spool.get_contents()
         self.time_step = self.contents["time_step"][0].total_seconds()
 
+    def single_patch_coherence(self, patch):
+        """Compute coherence for a single patch of data."""
+        return coherence(
+            patch.select(**{self.channel_dim: self.distance_array}).data.T,
+            self.sub_window_length,
+            self.overlap,
+            sample_interval=self.time_step,
+            method=self.method,
+        )
+
     def run(self):
         """Implement the coherence analysis using initialized parameters."""
         # perform coherence calculation on each patch
@@ -263,9 +275,11 @@ class CoherenceAnalysis:
         )
 
         self.detection_significance = np.stack(
-            [a[0] for a in map_out], axis=-1
+            [a[0] for a in map_out if a is not None], axis=-1
         )
-        self.eig_estimates = np.stack([a[1] for a in map_out], axis=-1)
+        self.eig_estimates = np.stack(
+            [a[1] for a in map_out if a is not None], axis=-1
+        )
 
     def save_results(self):
         """Save results to a file."""
@@ -408,7 +422,15 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    # record start time
+    # available_threads = os.environ.get("SLURM_CPUS_PER_TASK")
+    # if available_threads is None:
+    #     available_threads = os.cpu_count()
+
+    # print(f"Available threads: {available_threads}", flush=True)
+    # max_threads = max(int(int(available_threads) // 2), 1)
+    # print(f"Using {max_threads} threads for parallel processing.",flush=True)
+    # client = ProcessPoolExecutor(max_workers=max_threads)
+    # # record start time
     start_time = datetime.now()
 
     # Parse arguments
