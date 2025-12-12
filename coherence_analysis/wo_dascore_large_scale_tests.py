@@ -31,7 +31,7 @@ Example:
 import os
 import pickle
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import numpy as np
@@ -79,18 +79,25 @@ def _next_data_window(
     """
     num_files = len(data_files)
     total_window_length = averaging_window_length * samples_per_sec
+
+    window_start_time = datetime.strptime(
+        data_files[next_index][-15:-3], "%y%m%d%H%M%S"
+    )
+    window_start_time += timedelta(
+        seconds=start_sample_index / samples_per_sec
+    )
+
     data, _ = func.load_brady_hdf5(data_files[next_index], normalize="no")
     data_len = data.shape[1]
+    stop_sample_index = (
+        start_sample_index + total_window_length
+    )  # index we stopped reading data from file "next_index"
     data = data[
         first_channel : channel_offset + first_channel : int(
             channel_offset / num_channels
         ),
-        start_sample_index : start_sample_index + total_window_length,
+        start_sample_index:stop_sample_index,
     ]
-
-    stop_sample_index = (
-        start_sample_index + total_window_length
-    )  # index we stopped reading data from file "next_index"
 
     # number of samples to add to the data to make up the window length
     window_deficit = total_window_length - data.shape[1]
@@ -99,31 +106,68 @@ def _next_data_window(
         next_index += 1
         stop_sample_index = 0
 
+    ignored_files = []
+
     while window_deficit > 0 and next_index < num_files - 1:
         next_index += 1  # index of the next file to read data from
-        next_data, _ = func.load_brady_hdf5(
-            data_files[next_index],
-            normalize="no",
+        file_start_time = datetime.strptime(
+            data_files[next_index][-15:-3], "%y%m%d%H%M%S"
         )
-        next_data = func.rm_laser_drift(next_data)
-        next_data = next_data[
-            first_channel : channel_offset + first_channel : int(
-                channel_offset / num_channels
+        if file_start_time - window_start_time > timedelta(seconds=1):
+            ignored_files.append(data_files[next_index - 1])
+
+            window_start_time = file_start_time
+            data, _ = func.load_brady_hdf5(
+                data_files[next_index],
+                normalize="no",
             )
-        ]
-        data = np.append(data, next_data[:, :window_deficit], axis=1)
+            data = func.rm_laser_drift(data)
+            data = data[
+                first_channel : channel_offset + first_channel : int(
+                    channel_offset / num_channels
+                ),
+                :stop_sample_index,
+            ]
+            window_deficit = total_window_length - data.shape[1]
+            if window_deficit == 0 and stop_sample_index == data_len:
+                next_index += 1
+                stop_sample_index = 0
+        else:
+            next_data, _ = func.load_brady_hdf5(
+                data_files[next_index],
+                normalize="no",
+            )
+            next_data = func.rm_laser_drift(next_data)
+            next_data = next_data[
+                first_channel : channel_offset + first_channel : int(
+                    channel_offset / num_channels
+                )
+            ]
+            data = np.append(data, next_data[:, :window_deficit], axis=1)
 
-        if window_deficit < next_data.shape[1]:
-            stop_sample_index = window_deficit
-        elif (
-            window_deficit == next_data.shape[1] or next_index == num_files - 1
-        ):
-            next_index += 1
-            stop_sample_index = 0
+            if window_deficit < next_data.shape[1]:
+                stop_sample_index = window_deficit
+            elif (
+                window_deficit == next_data.shape[1]
+                or next_index == num_files - 1
+            ):
+                next_index += 1
+                stop_sample_index = 0
 
-        window_deficit = total_window_length - data.shape[1]
+            window_deficit = total_window_length - data.shape[1]
 
-    return data, next_index, stop_sample_index
+    window_end_time = window_start_time + timedelta(
+        seconds=total_window_length
+    )
+
+    return (
+        data,
+        next_index,
+        stop_sample_index,
+        window_start_time,
+        window_end_time,
+        ignored_files,
+    )
 
 
 if __name__ == "__main__":
@@ -209,10 +253,19 @@ if __name__ == "__main__":
             metadata["files"] = [a[-15:-3] for a in data_files]
 
     next_index = 0
-    data, next_index, stop_sample_index = _next_data_window(
+    (
+        data,
+        next_index,
+        stop_sample_index,
+        window_start_time,
+        window_end_time,
+        ignored_files,
+    ) = _next_data_window(
         data_files, next_index, averaging_window_length, samples_per_sec
     )
-
+    window_start_times = [window_start_time]
+    window_end_times = [window_end_time]
+    ignored_files = ignored_files
     # work on files after first file in batch. This works exactly as we
     # handled the beginning of later batches. Then we keep appending to
     # the variables set up for first file of the batch above
@@ -233,13 +286,23 @@ if __name__ == "__main__":
 
     # for a in data_files[1:]:
     while next_index < len(data_files) - 1:
-        data, next_index, stop_sample_index = _next_data_window(
+        (
+            data,
+            next_index,
+            stop_sample_index,
+            window_start_time,
+            window_end_time,
+            ignored_files,
+        ) = _next_data_window(
             data_files,
             next_index,
             averaging_window_length,
             samples_per_sec,
             stop_sample_index,
         )
+        window_start_times.append(window_start_time)
+        window_end_times.append(window_end_time)
+        ignored_files.append(ignored_files)
 
         if data.shape[1] == averaging_window_length * samples_per_sec:
             detection_significance, eig_estimates, _ = func.coherence(
@@ -271,6 +334,10 @@ if __name__ == "__main__":
                 f" {len(data_files) - next_index} files still remaining ",
                 flush=True,
             )
+
+        metadata["ignored_files"] = ignored_files
+        metadata["window_start_times"] = window_start_times
+        metadata["window_end_times"] = window_end_times
 
     print(
         f"Finished in: {datetime.now() - start_time} for {method} method."
