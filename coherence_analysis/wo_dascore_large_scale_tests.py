@@ -237,6 +237,8 @@ if __name__ == "__main__":
     metadata["channel_offset"] = channel_offset
     metadata["method"] = method
 
+    print(f"Starting {method} method with {metadata}", flush=True)
+
     # load the first file in the batch
     if batch == 1:
         first_file_time = data_files[0][-15:-3]
