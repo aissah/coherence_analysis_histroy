@@ -88,7 +88,9 @@ def _next_data_window(
     )
 
     data, _ = func.load_brady_hdf5(data_files[next_index], normalize="no")
+    data = func.rm_laser_drift(data)
     data_len = data.shape[1]
+
     stop_sample_index = (
         start_sample_index + total_window_length
     )  # index we stopped reading data from file "next_index"
@@ -113,7 +115,9 @@ def _next_data_window(
         file_start_time = datetime.strptime(
             data_files[next_index][-15:-3], "%y%m%d%H%M%S"
         )
-        if file_start_time - window_start_time > timedelta(seconds=1):
+        if file_start_time - window_start_time > timedelta(
+            seconds=int(data.shape[1] / samples_per_sec) + 1
+        ):
             ignored_files.append(data_files[next_index - 1])
 
             window_start_time = file_start_time
