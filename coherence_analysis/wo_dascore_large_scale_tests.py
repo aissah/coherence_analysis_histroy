@@ -335,9 +335,17 @@ if __name__ == "__main__":
                 flush=True,
             )
 
-        metadata["ignored_files"] = ignored_files
-        metadata["window_start_times"] = window_start_times
-        metadata["window_end_times"] = window_end_times
+        if next_index % 500 == 0:
+            print(
+                f"Processed {next_index} files. "
+                f"in {datetime.now() - start_time} for {method} method. "
+                f"{len(data_files) - next_index} files remaining.",
+                flush=True,
+            )
+
+    metadata["ignored_files"] = ignored_files
+    metadata["window_start_times"] = window_start_times
+    metadata["window_end_times"] = window_end_times
 
     print(
         f"Finished in: {datetime.now() - start_time} for {method} method."
