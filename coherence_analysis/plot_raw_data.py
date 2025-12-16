@@ -29,6 +29,7 @@ from ast import literal_eval
 from datetime import datetime
 
 import dascore as dc
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -153,7 +154,13 @@ if __name__ == "__main__":
     cbar = fig.colorbar(ax.images[0], ax=ax)
     cbar.set_label("Strain Rate", size=legend_size, weight="bold")
     cbar.ax.tick_params(labelsize=legend_size)
-    ax.xaxis_date()
+    # ax.xaxis_date()
+
+    locator = mdates.AutoDateLocator()
+    ax.xaxis.set_major_locator(locator)
+    formatter = mdates.ConciseDateFormatter(locator)
+    ax.xaxis.set_major_formatter(formatter)
+
     fig.autofmt_xdate()
     # ax.xaxis.set_major_formatter(mdates.DateFormatter("%d-%H:%M:%S"))
     plt.xlabel("Time", fontsize=label_size)
