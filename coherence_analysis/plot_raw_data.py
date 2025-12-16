@@ -1,0 +1,129 @@
+"""Script to plot raw data."""
+
+import argparse
+import os
+from ast import literal_eval
+from datetime import datetime
+
+import dascore as dc
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+
+
+def parse_args():
+    """Parse command line arguments.
+
+    Raises
+    ------
+    ValueError
+        Raise error if the method selected is not available.
+    """
+    # Initialize the parser
+    parser = argparse.ArgumentParser(
+        description="Coherence Analysis Configuration"
+    )
+
+    # Add arguments
+    parser.add_argument(
+        "data_path",
+        type=str,
+        help="Path to the directory containing the data files",
+    )
+    parser.add_argument(
+        "time_range",
+        type=str,
+        help="Range of time to use for coherence analysis "
+        "(in Python list format)",
+        default="(..., ...)",
+    )
+    parser.add_argument(
+        "-ch",
+        "--channel_range",
+        type=str,
+        help="Range of channels to use for coherence analysis "
+        " (in Python list format)",
+        default="(0, ...)",
+    )
+    parser.add_argument(
+        "-ds",
+        "--channel_offset",
+        type=int,
+        help="Channels to skip in between",
+        default=1,
+    )
+    parser.add_argument(
+        "-r",
+        "--result_path",
+        type=str,
+        help="Directory to save results",
+        default=os.path.join(
+            os.path.dirname(__file__), os.pardir, "data/results"
+        ),
+    )
+
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    # record start time
+    start_time = datetime.now()
+
+    # Parse arguments
+    args = parse_args()
+    print(f"Arguments read from command line: {args}", flush=True)
+
+    time_range = [
+        datetime.strptime(a, "%m/%d/%y %H:%M:%S") if a != ... else ...
+        for a in literal_eval(args.time_range)
+    ]
+    channel_range = literal_eval(args.channel_range)
+
+    # Read the data
+    print("Reading data...", flush=True)
+    spool = dc.spool(args.data_path)
+    spool = spool.select(time=time_range, samples=True)
+    spool = spool.concatenate(time=None)
+
+    dims = spool[0].dims
+    print(f"The data has the following dimensions: {dims}")
+    print(f"""Channels will be grouped based on the '{dims[1]}'
+            dimension. If another dimension is desired, use the
+            method, '_set_channel_dim()' to set it.""")
+    channel_dim = dims[1]
+
+    channels = np.arange(
+        channel_range[0],
+        channel_range[1],
+        args.channel_offset,
+        dtype=int,
+    )
+    distance_coords = spool[0].coords.get_array(channel_dim)
+    distance_array = distance_coords[channels]
+
+    print("Data read successfully.", flush=True)
+
+    dpi = 600
+    label_size = 14
+    tick_size = 12
+    legend_size = 12
+    sns.set_style("whitegrid")
+    plt.figure(figsize=(10, 6), dpi=dpi)
+    plt.imshow(
+        spool[0].select(**{channel_dim: distance_array}).data.T,
+        aspect="auto",
+        extent=[
+            time_range[0],
+            time_range[1],
+            distance_array[-1],
+            distance_array[0],
+        ],
+        cmap="viridis",
+    )
+    plt.colorbar(label="Strain Rate")
+    plt.xlabel("Time Samples", fontsize=label_size)
+    plt.ylabel("Channels", fontsize=label_size)
+    plt.xticks(fontsize=tick_size)
+    plt.yticks(fontsize=tick_size)
+
+    plt.savefig(os.path.join(args.result_path, "raw_data_plot.png"))
