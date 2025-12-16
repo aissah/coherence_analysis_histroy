@@ -155,4 +155,6 @@ if __name__ == "__main__":
     plt.xticks(fontsize=tick_size)
     plt.yticks(fontsize=tick_size)
 
+    print("Saving raw data plot...", flush=True)
+    os.makedirs(args.result_path, exist_ok=True)
     plt.savefig(os.path.join(args.result_path, "raw_data_plot.png"))
