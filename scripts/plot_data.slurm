@@ -17,8 +17,7 @@ declare -a arr=("qr")
 for method in "${arr[@]}";
 do
    echo "Working on directory: $data_dir"
-   srun --exclusive --ntasks=1 python ../coherence_analysis/plot_raw_data.py "$data_dir" "[2023-01-01 00:00:00, 2023-01-02 00:00:00]"
-    -ch "[5000, 6500]" -ds 3
+   srun --exclusive --ntasks=1 python ../coherence_analysis/plot_raw_data.py "$data_dir" "('2016-03-14 08:38:18', '2016-03-14 08:40:18')" -ch "[5000, 6500]" -ds 3
 done
 wait
 
