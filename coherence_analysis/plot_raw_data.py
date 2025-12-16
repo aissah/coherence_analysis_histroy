@@ -149,8 +149,9 @@ if __name__ == "__main__":
         vmin=-0.005,
         vmax=0.005,
     )
-    cbar = plt.colorbar(label="Strain Rate", fontsize=label_size)
-    cbar.ax.tick_params(labelsize=tick_size)
+    cbar = plt.colorbar()
+    cbar.set_label("Strain Rate", size=legend_size, weight="bold")
+    cbar.ax.tick_params(labelsize=legend_size)
     plt.xlabel("Time", fontsize=label_size)
     plt.ylabel("Channels", fontsize=label_size)
     plt.xticks(fontsize=tick_size)
