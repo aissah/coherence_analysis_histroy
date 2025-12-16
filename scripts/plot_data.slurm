@@ -20,4 +20,7 @@ srun --exclusive --ntasks=1 python ../coherence_analysis/plot_raw_data.py "$data
 
 srun --exclusive --ntasks=1 python ../coherence_analysis/plot_raw_data.py "$data_dir" "('03/14/16 02:22:18', '03/14/16 02:24:18')" -ch "[5000, 6500]" -ds 3
 
+# two distinct events on 03/14/16
+srun --exclusive --ntasks=1 python ../coherence_analysis/plot_raw_data.py "$data_dir" "('03/14/16 04:02:18', '03/14/16 04:04:18')" -ch "[5000, 6500]" -ds 3
+
 echo "All jobs finished"
