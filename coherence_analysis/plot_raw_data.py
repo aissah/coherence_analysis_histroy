@@ -131,10 +131,10 @@ if __name__ == "__main__":
     print("Data read successfully.", flush=True)
 
     dpi = 600
-    label_size = 14
-    tick_size = 12
+    label_size = 16
+    tick_size = 14
     legend_size = 12
-    sns.set_style("whitegrid")
+    sns.set_theme(style="whitegrid", context="paper")
     plt.figure(figsize=(10, 6), dpi=dpi)
     plt.imshow(
         data_array.T,
