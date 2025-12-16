@@ -106,7 +106,7 @@ if __name__ == "__main__":
     print("Reading data...", flush=True)
     spool = dc.spool(args.data_path)
     spool = spool.select(time=time_range, samples=True)
-    spool = spool.concatenate(time=None)
+    # spool = spool.concatenate(time=None)
 
     dims = spool[0].dims
     print(f"The data has the following dimensions: {dims}")
@@ -124,6 +124,10 @@ if __name__ == "__main__":
     distance_coords = spool[0].coords.get_array(channel_dim)
     distance_array = distance_coords[channels]
 
+    data_array = np.concatenate(
+        [d.select(**{channel_dim: distance_array}).data for d in spool], axis=0
+    )
+
     print("Data read successfully.", flush=True)
 
     dpi = 600
@@ -133,7 +137,7 @@ if __name__ == "__main__":
     sns.set_style("whitegrid")
     plt.figure(figsize=(10, 6), dpi=dpi)
     plt.imshow(
-        spool[0].select(**{channel_dim: distance_array}).data.T,
+        data_array.T,
         aspect="auto",
         extent=[
             time_range[0],
