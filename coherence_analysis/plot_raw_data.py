@@ -135,9 +135,9 @@ if __name__ == "__main__":
     label_size = 16
     tick_size = 14
     legend_size = 12
-    sns.set_theme(style="white", context="paper")
+    sns.set_theme(style="ticks", context="paper", font_scale=2)
     # plt.figure(figsize=(10, 6), dpi=dpi)
-    fig, ax = plt.subplots(figsize=(8, 6), dpi=dpi)
+    fig, ax = plt.subplots(figsize=(10, 6), dpi=dpi)
     ax.imshow(
         data_array.T,
         aspect="auto",
@@ -151,7 +151,7 @@ if __name__ == "__main__":
         vmin=-0.005,
         vmax=0.005,
     )
-    cbar = fig.colorbar(ax.images[0], ax=ax)
+    cbar = fig.colorbar(ax.images[0], ax=ax, pad=0.02)
     cbar.set_label("Strain Rate")
     # cbar.set_label("Strain Rate", size=legend_size, weight="bold")
     # cbar.ax.tick_params(labelsize=legend_size)
