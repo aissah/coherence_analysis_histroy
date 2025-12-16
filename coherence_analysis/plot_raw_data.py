@@ -151,7 +151,7 @@ if __name__ == "__main__":
     )
     cbar = plt.colorbar(label="Strain Rate", fontsize=label_size)
     cbar.ax.tick_params(labelsize=tick_size)
-    plt.xlabel("Time Samples", fontsize=label_size)
+    plt.xlabel("Time", fontsize=label_size)
     plt.ylabel("Channels", fontsize=label_size)
     plt.xticks(fontsize=tick_size)
     plt.yticks(fontsize=tick_size)
