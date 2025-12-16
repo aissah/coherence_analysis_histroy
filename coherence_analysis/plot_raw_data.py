@@ -152,8 +152,9 @@ if __name__ == "__main__":
         vmax=0.005,
     )
     cbar = fig.colorbar(ax.images[0], ax=ax)
-    cbar.set_label("Strain Rate", size=legend_size, weight="bold")
-    cbar.ax.tick_params(labelsize=legend_size)
+    cbar.set_label("Strain Rate")
+    # cbar.set_label("Strain Rate", size=legend_size, weight="bold")
+    # cbar.ax.tick_params(labelsize=legend_size)
     # ax.xaxis_date()
 
     locator = mdates.AutoDateLocator()
@@ -161,12 +162,12 @@ if __name__ == "__main__":
     formatter = mdates.ConciseDateFormatter(locator)
     ax.xaxis.set_major_formatter(formatter)
 
-    fig.autofmt_xdate()
+    # fig.autofmt_xdate()
     # ax.xaxis.set_major_formatter(mdates.DateFormatter("%d-%H:%M:%S"))
-    plt.xlabel("Time", fontsize=label_size)
-    plt.ylabel("Channels", fontsize=label_size)
-    plt.xticks(fontsize=tick_size)
-    plt.yticks(fontsize=tick_size)
+    plt.xlabel("Time")
+    plt.ylabel("Channels")
+    # plt.xticks(fontsize=tick_size)
+    # plt.yticks(fontsize=tick_size)
     fig.tight_layout()
 
     print("Saving raw data plot...", flush=True)
