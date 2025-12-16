@@ -1,4 +1,27 @@
-"""Script to plot raw data."""
+"""Script to plot raw data.
+
+This script reads raw data from a specified directory, selects a time range and
+channel range, and generates a plot of the raw data. The plot is saved to a
+designated results directory.
+
+Usage:
+    python plot_raw_data.py <data_path> <time_range> [-ch <channel_range>]
+                            [-ds <channel_offset>] [-r <result_path>]
+Arguments:
+    data_path (str): Path to the directory containing the data files.
+    time_range (str): Range of time (in Python list format,
+                    e.g., "[start_time, end_time]").
+    -ch, --channel_range (str, optional): Range of channels to plot.
+                    (in Python list format, e.g., "[start_channel,
+                    end_channel]"). Default is "(0, ...)".
+    -ds, --channel_offset (int, optional): Channels to skip in between.
+                    Default is 1.
+    -r, --result_path (str, optional): Directory to save results. Default is
+                    "../data/results".
+Example:
+    python plot_raw_data.py ./data "[2023-01-01 00:00:00, 2023-01-02 00:00:00]"
+    -ch "[0, 100]" -ds 2 -r ./results
+"""
 
 import argparse
 import os
