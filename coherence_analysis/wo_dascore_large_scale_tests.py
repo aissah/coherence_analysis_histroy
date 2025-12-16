@@ -161,7 +161,7 @@ def _next_data_window(
             window_deficit = total_window_length - data.shape[1]
 
     window_end_time = window_start_time + timedelta(
-        seconds=total_window_length
+        seconds=total_window_length / samples_per_sec
     )
 
     return (
