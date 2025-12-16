@@ -134,7 +134,7 @@ if __name__ == "__main__":
     label_size = 16
     tick_size = 14
     legend_size = 12
-    sns.set_theme(style="whitegrid", context="paper")
+    sns.set_theme(context="paper")
     plt.figure(figsize=(10, 6), dpi=dpi)
     plt.imshow(
         data_array.T,
@@ -149,7 +149,8 @@ if __name__ == "__main__":
         vmin=-0.005,
         vmax=0.005,
     )
-    plt.colorbar(label="Strain Rate")
+    cbar = plt.colorbar(label="Strain Rate", fontsize=label_size)
+    cbar.ax.tick_params(labelsize=tick_size)
     plt.xlabel("Time Samples", fontsize=label_size)
     plt.ylabel("Channels", fontsize=label_size)
     plt.xticks(fontsize=tick_size)
@@ -157,4 +158,6 @@ if __name__ == "__main__":
 
     print("Saving raw data plot...", flush=True)
     os.makedirs(args.result_path, exist_ok=True)
-    plt.savefig(os.path.join(args.result_path, "raw_data_plot.png"))
+    plt.savefig(
+        os.path.join(args.result_path, f"raw_data_plot_{time_range[0]}.png")
+    )
