@@ -135,7 +135,7 @@ if __name__ == "__main__":
     label_size = 16
     tick_size = 14
     legend_size = 12
-    sns.set_theme("ticks", context="paper")
+    sns.set_theme(style="white", context="paper")
     # plt.figure(figsize=(10, 6), dpi=dpi)
     fig, ax = plt.subplots(figsize=(12, 6), dpi=dpi)
     ax.imshow(
