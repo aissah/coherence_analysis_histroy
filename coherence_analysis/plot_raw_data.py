@@ -145,7 +145,9 @@ if __name__ == "__main__":
             distance_array[-1],
             distance_array[0],
         ],
-        cmap="viridis",
+        cmap="RdBu_r",
+        vmin=-0.005,
+        vmax=0.005,
     )
     plt.colorbar(label="Strain Rate")
     plt.xlabel("Time Samples", fontsize=label_size)
