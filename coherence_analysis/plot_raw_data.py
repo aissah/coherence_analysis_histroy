@@ -151,7 +151,7 @@ if __name__ == "__main__":
         vmin=-0.005,
         vmax=0.005,
     )
-    cbar = plt.colorbar()
+    cbar = fig.colorbar(ax.images[0], ax=ax)
     cbar.set_label("Strain Rate", size=legend_size, weight="bold")
     cbar.ax.tick_params(labelsize=legend_size)
     ax.xaxis_date()
