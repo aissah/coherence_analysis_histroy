@@ -130,10 +130,10 @@ def _next_data_window(
                 first_channel : channel_offset + first_channel : int(
                     channel_offset / num_channels
                 ),
-                :stop_sample_index,
+                :total_window_length,
             ]
             window_deficit = total_window_length - data.shape[1]
-            if window_deficit == 0 and stop_sample_index == data_len:
+            if window_deficit == 0:
                 next_index += 1
                 stop_sample_index = 0
         else:
@@ -308,7 +308,7 @@ if __name__ == "__main__":
         )
         window_start_times.append(window_start_time)
         window_end_times.append(window_end_time)
-        ignored_files.append(ignored_files)
+        ignored_files.extend(ignored_files)
 
         if data.shape[1] == averaging_window_length * samples_per_sec:
             detection_significance, eig_estimates, _ = func.coherence(
