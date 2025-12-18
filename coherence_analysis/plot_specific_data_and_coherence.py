@@ -255,9 +255,9 @@ def get_data_files(data_path):
                 if ".h5" in file_name and file_name[0] != "."
             ]
         )
-    data_files = [a[-15:-3] for a in data_files]
+    file_times = [a[-15:-3] for a in data_files]
 
-    return data_files
+    return data_files, file_times
 
 
 if __name__ == "__main__":
@@ -381,7 +381,7 @@ if __name__ == "__main__":
     # print("Data arrays are equal:", np.allclose(data_array, data_array_2))
     # np.testing.assert_almost_equal(data_array, data_array_2, decimal=5)
 
-    data_files = get_data_files(args.data_path)
+    data_files, file_times = get_data_files(args.data_path)
     next_index = data_files.index("160314083518")
     (
         data_array,
@@ -422,7 +422,7 @@ if __name__ == "__main__":
     #     ],
     #     axis=0,
     # )
-    next_index = data_files.index("160314083518")
+    next_index = data_files.index("160314040218")
     (
         data_array,
         _,
