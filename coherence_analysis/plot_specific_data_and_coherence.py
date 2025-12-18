@@ -185,10 +185,10 @@ if __name__ == "__main__":
     data_array_2 = np.concatenate(
         [d.data for d in big_signal_spool],
         axis=0,
-    )
-    data_array_2 = data_array_2[
-        :, channel_range[0] : channel_range[1] : args.channel_offset
-    ]
+    )[:, channel_range[0] : channel_range[1] : args.channel_offset]
+    # data_array_2 = data_array_2[
+    #     :, channel_range[0] : channel_range[1] : args.channel_offset
+    # ]
     print("Checking if data arrays are equal...", flush=True)
     print(data_array_2.shape, data_array.shape)
     print("Data arrays are equal:", np.allclose(data_array, data_array_2))
