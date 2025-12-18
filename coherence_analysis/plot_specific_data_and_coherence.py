@@ -131,9 +131,9 @@ if __name__ == "__main__":
     dims = spool[0].dims
     print(f"The data has the following dimensions: {dims}")
     print(
-        f"""Channels will be grouped based on the '{dims[1]}'
-            dimension. If another dimension is desired, use the
-            method, '_set_channel_dim()' to set it.""",
+        f"Channels will be grouped based on the '{dims[1]}'"
+        "dimension. If another dimension is desired, use the"
+        "method, '_set_channel_dim()' to set it.",
         flush=True,
     )
     channel_dim = dims[1]
@@ -252,14 +252,14 @@ if __name__ == "__main__":
         timedelta(seconds=a) + big_signal_start_time
         for a in range(eig_estimates_big.shape[1])
     ]
-    for a in frequencies[1:]:
+    for a in frequencies[:]:
         ax_line_a.plot(time_ax, eig_estimates_big[a, :] / 500, linewidth=2.5)
 
     time_ax = [
         timedelta(seconds=a) + small_signal_start_time
         for a in range(eig_estimates_small.shape[1])
     ]
-    for a in frequencies[1:]:
+    for a in frequencies[:]:
         ax_line_b.plot(time_ax, eig_estimates_small[a, :] / 500, linewidth=2.5)
 
     # ---- vertical event lines (left axes) ----
