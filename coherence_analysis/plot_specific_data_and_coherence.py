@@ -110,7 +110,7 @@ if __name__ == "__main__":
     ]
     channel_range = [5000, 6500]
 
-    frequencies = [11, 11, 15]  # frequencies to plot traces for
+    frequencies = [7, 11, 15]  # frequencies to plot traces for
     big_event_times = [
         big_signal_start_time + timedelta(seconds=et) for et in [58, 69, 113]
     ]
@@ -250,7 +250,7 @@ if __name__ == "__main__":
         timedelta(seconds=a) + big_signal_start_time
         for a in range(eig_estimates_big.shape[1])
     ]
-    for a in frequencies[:]:
+    for a in frequencies[1:]:
         ax_line_a.plot(time_ax, eig_estimates_big[a, :] / 500, linewidth=2.5)
 
     time_ax = [
