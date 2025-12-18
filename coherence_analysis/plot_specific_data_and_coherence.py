@@ -31,7 +31,6 @@ import dascore as dc
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 import utils.utils as func
 from matplotlib.lines import Line2D
 
@@ -145,10 +144,10 @@ if __name__ == "__main__":
     label_size = 16
     tick_size = 14
     legend_size = 12
-    sns.set_theme(style="ticks", context="paper", font_scale=1.2)
+    # sns.set_theme(style="ticks", context="paper", font_scale=1.2)
 
     # ---- figure grid ----
-    fig = plt.figure(figsize=(10, 5), dpi=dpi)
+    fig = plt.figure(figsize=(12, 9), dpi=dpi)
 
     gs = fig.add_gridspec(
         nrows=2,
@@ -247,14 +246,14 @@ if __name__ == "__main__":
         for a in range(eig_estimates_big.shape[1])
     ]
     for a in frequencies:
-        ax_line_a.plot(time_ax, eig_estimates_big[a, :])  # , linewidth=1.5)
+        ax_line_a.plot(time_ax, eig_estimates_big[a, :], linewidth=1.5)
 
     time_ax = [
         timedelta(seconds=a) + small_signal_start_time
         for a in range(eig_estimates_small.shape[1])
     ]
     for a in frequencies:
-        ax_line_b.plot(time_ax, eig_estimates_small[a, :])  # , linewidth=1.5)
+        ax_line_b.plot(time_ax, eig_estimates_small[a, :], linewidth=1.5)
 
     # ---- vertical event lines (left axes) ----
     for et in big_event_times:
@@ -287,7 +286,7 @@ if __name__ == "__main__":
         loc="upper left",
         bbox_to_anchor=(-2.0, -0.06),
         frameon=False,
-        # fontsize=9,
+        fontsize=9,
         handlelength=2.5,
         ncol=1,
     )
@@ -301,7 +300,7 @@ if __name__ == "__main__":
             transform=ax.transAxes,
             ha="left",
             va="top",
-            # fontsize=12,
+            fontsize=12,
             fontweight="bold",
         )
 
