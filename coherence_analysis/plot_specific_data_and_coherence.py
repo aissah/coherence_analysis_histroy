@@ -110,7 +110,7 @@ if __name__ == "__main__":
     ]
     channel_range = [5000, 6500]
 
-    frequencies = [9, 11, 15]  # frequencies to plot traces for
+    frequencies = [11, 11, 15]  # frequencies to plot traces for
     big_event_times = [
         big_signal_start_time + timedelta(seconds=et) for et in [58, 69, 113]
     ]
@@ -131,9 +131,7 @@ if __name__ == "__main__":
     dims = spool[0].dims
     print(f"The data has the following dimensions: {dims}")
     print(
-        f"Channels will be grouped based on the '{dims[1]}'"
-        "dimension. If another dimension is desired, use the"
-        "method, '_set_channel_dim()' to set it.",
+        f"Channels will be grouped based on the '{dims[1]}' dimension.",
         flush=True,
     )
     channel_dim = dims[1]
