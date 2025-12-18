@@ -81,6 +81,29 @@ def parse_args():
     return parser.parse_args()
 
 
+# def manual_read_data(data_path, start_time_str, num_files, channel_range,
+#   channel_offset):
+#     """Read data from the specified path."""
+#     data_files = []
+#     for dir_path, dir_names, file_names in os.walk(data_path):
+#         dir_names.sort()
+#         file_names.sort()
+#         data_files.extend(
+#             [
+#                 os.path.join(dir_path, file_name)
+#                 for file_name in file_names
+#                 if ".h5" in file_name and file_name[0] != "."
+#             ]
+#         )
+#     data_files = [a[-15:-3] for a in data_files]
+
+#     file_index = data_files.index(start_time_str)
+
+#     for i in range(num_files):
+
+
+#     return data_files
+
 if __name__ == "__main__":
     # record start time
     start_time = datetime.now()
@@ -175,24 +198,32 @@ if __name__ == "__main__":
     # ---- imshow (use SAME vmin/vmax) ----
     vmax = 0.002
     vmin = -0.002
-    data_array = np.concatenate(
-        [
-            d.select(**{channel_dim: distance_array}).data
-            for d in big_signal_spool
-        ],
-        axis=0,
+    # data_array = np.concatenate(
+    #     [
+    #         d.select(**{channel_dim: distance_array}).data
+    #         for d in big_signal_spool
+    #     ],
+    #     axis=0,
+    # )
+    big_signal_spool = big_signal_spool.map(
+        lambda x: func.rm_laser_drift(x.data.T)[
+            channel_range[0] : channel_range[1] : args.channel_offset
+        ]
     )
-    data_array_2 = np.concatenate(
-        [d.data for d in big_signal_spool],
-        axis=0,
-    )[:, channel_range[0] : channel_range[1] : args.channel_offset]
+    data_array = np.concatenate(big_signal_spool, axis=1).T
+    print("Data array shape:", data_array.shape)
+    quit()
+    # data_array_2 = np.concatenate(
+    #     [d.data for d in big_signal_spool],
+    #     axis=0,
+    # )[:, channel_range[0] : channel_range[1] : args.channel_offset]
     # data_array_2 = data_array_2[
     #     :, channel_range[0] : channel_range[1] : args.channel_offset
     # ]
     print("Checking if data arrays are equal...", flush=True)
-    print(data_array_2.shape, data_array.shape)
-    print("Data arrays are equal:", np.allclose(data_array, data_array_2))
-    np.testing.assert_almost_equal(data_array, data_array_2, decimal=5)
+    # print(data_array_2.shape, data_array.shape)
+    # print("Data arrays are equal:", np.allclose(data_array, data_array_2))
+    # np.testing.assert_almost_equal(data_array, data_array_2, decimal=5)
 
     ima = ax_img_a.imshow(
         data_array.T,
