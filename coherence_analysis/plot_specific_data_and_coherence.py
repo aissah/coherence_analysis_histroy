@@ -131,7 +131,7 @@ def _next_data_window(
     )
 
     data, _ = func.load_brady_hdf5(data_files[next_index], normalize="no")
-    data = func.rm_laser_drift(data)
+    # data = func.rm_laser_drift(data)
     data_len = data.shape[1]
 
     stop_sample_index = (
