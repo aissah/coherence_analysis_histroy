@@ -471,14 +471,14 @@ if __name__ == "__main__":
         for a in range(eig_estimates_big.shape[1])
     ]
     for a in frequencies[:]:
-        ax_line_a.plot(time_ax, eig_estimates_big[a, :] / 500, linewidth=2.5)
+        ax_line_a.plot(time_ax, eig_estimates_big[a, :] / 500, linewidth=1.5)
 
     time_ax = [
         timedelta(seconds=a) + small_signal_start_time
         for a in range(eig_estimates_small.shape[1])
     ]
     for a in frequencies[:]:
-        ax_line_b.plot(time_ax, eig_estimates_small[a, :] / 500, linewidth=2.5)
+        ax_line_b.plot(time_ax, eig_estimates_small[a, :] / 500, linewidth=1.5)
 
     # ---- set y-limits for line plots ----
     ymax = np.max(eig_estimates_small[frequencies, :])
@@ -492,12 +492,12 @@ if __name__ == "__main__":
     # ---- vertical event lines (left axes) ----
     for et in big_event_times:
         for ax in (ax_img_a, ax_line_a):
-            ax.axvline(et, color="k", linestyle="--", linewidth=2.3, alpha=0.7)
+            ax.axvline(et, color="k", linestyle="--", linewidth=1.5, alpha=0.7)
 
     # ---- vertical event lines (right axes) ----
     for et in small_event_times:
         for ax in (ax_img_b, ax_line_b):
-            ax.axvline(et, color="k", linestyle="--", linewidth=2.3, alpha=0.7)
+            ax.axvline(et, color="k", linestyle="--", linewidth=1.5, alpha=0.7)
 
     # ---- shared colorbar ----
     cbar = fig.colorbar(ima, cax=cax, pad=0.02)
