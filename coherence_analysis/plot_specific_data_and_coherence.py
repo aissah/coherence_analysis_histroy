@@ -243,14 +243,14 @@ if __name__ == "__main__":
 
     # ---- line plots ----
     time_ax = [
-        datetime.timedelta(seconds=a) + big_signal_start_time
+        timedelta(seconds=a) + big_signal_start_time
         for a in range(eig_estimates_big.shape[1])
     ]
     for a in frequencies:
         ax_line_a.plot(time_ax, eig_estimates_big[a, :], linewidth=1.5)
 
     time_ax = [
-        datetime.timedelta(seconds=a) + small_signal_start_time
+        timedelta(seconds=a) + small_signal_start_time
         for a in range(eig_estimates_small.shape[1])
     ]
     for a in frequencies:
