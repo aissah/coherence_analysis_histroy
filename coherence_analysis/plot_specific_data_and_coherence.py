@@ -81,6 +81,143 @@ def parse_args():
     return parser.parse_args()
 
 
+def _next_data_window(
+    data_files: list[str],
+    next_index: int,
+    averaging_window_length: int,
+    samples_per_sec: int,
+    start_sample_index: int = 0,
+):
+    """
+    Load the next data window from the data files.
+
+    This function is used to load the next window of data from the list of
+    data files. It continues to read data from the files until the window
+    length is reached. The function returns the data, the index of the next
+    file to read data from, and the index with the file at which we stopped
+    reading.
+
+    Parameters
+    ----------
+    data_file : list[str]
+        list of the data files to read data from
+    next_index : int
+        index of the next file to read data from
+    averaging_window_length : int
+        length of the averaging window in seconds
+    samples_per_sec : int
+        number of samples per second in the data
+    start_sample_index : int
+        index of the first sample to read from the next data file
+
+    Returns
+    -------
+    data : np array
+        data read from the data files
+    next_index : int
+        index of the next file to read data from
+    stop_sample_index : int
+        index we stopped reading data from file "next_index"
+
+    """
+    num_files = len(data_files)
+    total_window_length = averaging_window_length * samples_per_sec
+
+    window_start_time = datetime.strptime(
+        data_files[next_index][-15:-3], "%y%m%d%H%M%S"
+    )
+    window_start_time += timedelta(
+        seconds=start_sample_index / samples_per_sec
+    )
+
+    data, _ = func.load_brady_hdf5(data_files[next_index], normalize="no")
+    data = func.rm_laser_drift(data)
+    data_len = data.shape[1]
+
+    stop_sample_index = (
+        start_sample_index + total_window_length
+    )  # index we stopped reading data from file "next_index"
+    first_channel, channel_offset, num_channels = 5000, 1500, 500
+    data = data[
+        first_channel : channel_offset + first_channel : int(
+            channel_offset / num_channels
+        ),
+        start_sample_index:stop_sample_index,
+    ]
+
+    # number of samples to add to the data to make up the window length
+    window_deficit = total_window_length - data.shape[1]
+
+    if window_deficit == 0 and stop_sample_index == data_len:
+        next_index += 1
+        stop_sample_index = 0
+
+    ignored_files = []
+
+    while window_deficit > 0 and next_index < num_files - 1:
+        next_index += 1  # index of the next file to read data from
+        file_start_time = datetime.strptime(
+            data_files[next_index][-15:-3], "%y%m%d%H%M%S"
+        )
+        if file_start_time - window_start_time > timedelta(
+            seconds=int(data.shape[1] / samples_per_sec) + 1
+        ):
+            ignored_files.append(data_files[next_index - 1])
+
+            window_start_time = file_start_time
+            data, _ = func.load_brady_hdf5(
+                data_files[next_index],
+                normalize="no",
+            )
+            data = func.rm_laser_drift(data)
+            data = data[
+                first_channel : channel_offset + first_channel : int(
+                    channel_offset / num_channels
+                ),
+                :total_window_length,
+            ]
+            window_deficit = total_window_length - data.shape[1]
+            if window_deficit == 0:
+                next_index += 1
+                stop_sample_index = 0
+        else:
+            next_data, _ = func.load_brady_hdf5(
+                data_files[next_index],
+                normalize="no",
+            )
+            next_data = func.rm_laser_drift(next_data)
+            next_data = next_data[
+                first_channel : channel_offset + first_channel : int(
+                    channel_offset / num_channels
+                )
+            ]
+            data = np.append(data, next_data[:, :window_deficit], axis=1)
+
+            if window_deficit < next_data.shape[1]:
+                stop_sample_index = window_deficit
+            elif (
+                window_deficit == next_data.shape[1]
+                or next_index == num_files - 1
+            ):
+                next_index += 1
+                stop_sample_index = 0
+
+            window_deficit = total_window_length - data.shape[1]
+
+    window_end_time = window_start_time + timedelta(
+        seconds=total_window_length / samples_per_sec
+    )
+
+    return (
+        data,
+        next_index,
+        stop_sample_index,
+        window_start_time,
+        window_end_time,
+        ignored_files,
+    )
+
+
 # def manual_read_data(data_path, start_time_str, num_files, channel_range,
 #   channel_offset):
 #     """Read data from the specified path."""
@@ -103,6 +240,25 @@ def parse_args():
 
 
 #     return data_files
+
+
+def get_data_files(data_path):
+    """Get the index of the start time in the data files."""
+    data_files = []
+    for dir_path, dir_names, file_names in os.walk(data_path):
+        dir_names.sort()
+        file_names.sort()
+        data_files.extend(
+            [
+                os.path.join(dir_path, file_name)
+                for file_name in file_names
+                if ".h5" in file_name and file_name[0] != "."
+            ]
+        )
+    data_files = [a[-15:-3] for a in data_files]
+
+    return data_files
+
 
 if __name__ == "__main__":
     # record start time
@@ -205,14 +361,14 @@ if __name__ == "__main__":
     #     ],
     #     axis=0,
     # )
-    big_signal_spool = big_signal_spool.map(
-        lambda x: func.rm_laser_drift(x.data.T)[
-            channel_range[0] : channel_range[1] : args.channel_offset
-        ]
-    )
-    data_array = np.concatenate(big_signal_spool, axis=1).T
-    print("Data array shape:", data_array.shape)
-    quit()
+    # big_signal_spool = big_signal_spool.map(
+    #     lambda x: func.rm_laser_drift(x.data.T)[
+    #         channel_range[0] : channel_range[1] : args.channel_offset
+    #     ]
+    # )
+    # data_array = np.concatenate(big_signal_spool, axis=1).T
+    # print("Data array shape:", data_array.shape)
+    # quit()
     # data_array_2 = np.concatenate(
     #     [d.data for d in big_signal_spool],
     #     axis=0,
@@ -225,6 +381,17 @@ if __name__ == "__main__":
     # print("Data arrays are equal:", np.allclose(data_array, data_array_2))
     # np.testing.assert_almost_equal(data_array, data_array_2, decimal=5)
 
+    data_files = get_data_files(args.data_path)
+    next_index = data_files.index("160314083518")
+    (
+        data_array,
+        _,
+        _,
+        _,
+        _,
+        _,
+    ) = _next_data_window(data_files, next_index, 120, 1000)
+    data_array = data_array.T
     ima = ax_img_a.imshow(
         data_array.T,
         extent=[
@@ -248,13 +415,23 @@ if __name__ == "__main__":
     )
 
     # ---- second image plot ----
-    data_array = np.concatenate(
-        [
-            d.select(**{channel_dim: distance_array}).data
-            for d in small_signal_spool
-        ],
-        axis=0,
-    )
+    # data_array = np.concatenate(
+    #     [
+    #         d.select(**{channel_dim: distance_array}).data
+    #         for d in small_signal_spool
+    #     ],
+    #     axis=0,
+    # )
+    next_index = data_files.index("160314083518")
+    (
+        data_array,
+        _,
+        _,
+        _,
+        _,
+        _,
+    ) = _next_data_window(data_files, next_index, 120, 1000)
+    data_array = data_array.T
     imb = ax_img_b.imshow(
         data_array.T,
         extent=[
