@@ -145,7 +145,7 @@ if __name__ == "__main__":
     label_size = 16
     tick_size = 14
     legend_size = 12
-    sns.set_theme(style="ticks", context="paper", font_scale=2)
+    sns.set_theme(style="ticks", context="paper", font_scale=1.2)
 
     # ---- figure grid ----
     fig = plt.figure(figsize=(10, 5), dpi=dpi)
@@ -247,14 +247,14 @@ if __name__ == "__main__":
         for a in range(eig_estimates_big.shape[1])
     ]
     for a in frequencies:
-        ax_line_a.plot(time_ax, eig_estimates_big[a, :], linewidth=1.5)
+        ax_line_a.plot(time_ax, eig_estimates_big[a, :])  # , linewidth=1.5)
 
     time_ax = [
         timedelta(seconds=a) + small_signal_start_time
         for a in range(eig_estimates_small.shape[1])
     ]
     for a in frequencies:
-        ax_line_b.plot(time_ax, eig_estimates_small[a, :], linewidth=1.5)
+        ax_line_b.plot(time_ax, eig_estimates_small[a, :])  # , linewidth=1.5)
 
     # ---- vertical event lines (left axes) ----
     for et in big_event_times:
