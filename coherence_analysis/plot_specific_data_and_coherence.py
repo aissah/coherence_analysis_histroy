@@ -169,7 +169,7 @@ def _next_data_window(
                 data_files[next_index],
                 normalize="no",
             )
-            data = func.rm_laser_drift(data)
+            # data = func.rm_laser_drift(data)
             data = data[
                 first_channel : channel_offset + first_channel : int(
                     channel_offset / num_channels
@@ -185,7 +185,7 @@ def _next_data_window(
                 data_files[next_index],
                 normalize="no",
             )
-            next_data = func.rm_laser_drift(next_data)
+            # next_data = func.rm_laser_drift(next_data)
             next_data = next_data[
                 first_channel : channel_offset + first_channel : int(
                     channel_offset / num_channels
@@ -477,7 +477,7 @@ if __name__ == "__main__":
         timedelta(seconds=a) + small_signal_start_time
         for a in range(eig_estimates_small.shape[1])
     ]
-    for a in frequencies[1:]:
+    for a in frequencies[:]:
         ax_line_b.plot(time_ax, eig_estimates_small[a, :] / 500, linewidth=2.5)
 
     # ---- set y-limits for line plots ----
