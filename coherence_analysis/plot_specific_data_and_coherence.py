@@ -261,9 +261,8 @@ if __name__ == "__main__":
         ax_line_b.plot(time_ax, eig_estimates_small[a, :] / 500, linewidth=2.5)
 
     # ---- set y-limits for line plots ----
-    ymax = np.max(
-        eig_estimates_small[frequencies, :], eig_estimates_big[frequencies, :]
-    ).max()
+    ymax = np.max(eig_estimates_small[frequencies, :])
+    ymax = max(ymax, np.max(eig_estimates_big[frequencies, :]))
     ymax = ymax / 500
     pad = 0.05 * (ymax - 0)
     ymin = -pad
