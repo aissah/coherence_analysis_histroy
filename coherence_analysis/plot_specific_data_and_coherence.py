@@ -110,7 +110,7 @@ if __name__ == "__main__":
     ]
     channel_range = [5000, 6500]
 
-    frequencies = [8, 11, 15]  # frequencies to plot traces for
+    frequencies = [9, 11, 15]  # frequencies to plot traces for
     big_event_times = [
         big_signal_start_time + timedelta(seconds=et) for et in [58, 69, 113]
     ]
