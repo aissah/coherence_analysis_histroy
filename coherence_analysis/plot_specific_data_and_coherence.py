@@ -28,9 +28,9 @@ import os
 from datetime import datetime, timedelta
 
 import dascore as dc
-import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 import utils.utils as func
 from matplotlib.lines import Line2D
 
@@ -144,10 +144,10 @@ if __name__ == "__main__":
     label_size = 16
     tick_size = 14
     legend_size = 12
-    # sns.set_theme(style="ticks", context="paper", font_scale=1.2)
+    sns.set_theme(style="ticks", context="paper", font_scale=1.1)
 
     # ---- figure grid ----
-    fig = plt.figure(figsize=(12, 9), dpi=dpi)
+    fig = plt.figure(figsize=(12, 7), dpi=dpi)
 
     gs = fig.add_gridspec(
         nrows=2,
@@ -286,7 +286,7 @@ if __name__ == "__main__":
         loc="upper left",
         bbox_to_anchor=(-2.0, -0.06),
         frameon=False,
-        fontsize=9,
+        # fontsize=9,
         handlelength=2.5,
         ncol=1,
     )
@@ -300,16 +300,16 @@ if __name__ == "__main__":
             transform=ax.transAxes,
             ha="left",
             va="top",
-            fontsize=12,
+            # fontsize=12,
             fontweight="bold",
         )
 
     # ---- x-axis date formatting ----
-    for ax in [ax_line_a, ax_line_b]:
-        locator = mdates.AutoDateLocator()
-        ax.xaxis.set_major_locator(locator)
-        formatter = mdates.ConciseDateFormatter(locator)
-        ax.xaxis.set_major_formatter(formatter)
+    # for ax in [ax_line_a, ax_line_b]:
+    #     locator = mdates.AutoDateLocator()
+    #     ax.xaxis.set_major_locator(locator)
+    #     formatter = mdates.ConciseDateFormatter(locator)
+    #     ax.xaxis.set_major_formatter(formatter)
 
     print("Saving raw data plot...", flush=True)
     os.makedirs(args.result_path, exist_ok=True)
