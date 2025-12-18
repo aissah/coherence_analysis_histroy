@@ -155,8 +155,8 @@ if __name__ == "__main__":
         ncols=3,
         width_ratios=[20, 20, 1],  # last column = shared colorbar
         height_ratios=[3, 1],
-        # hspace=0.05,
-        # wspace=0.12,
+        hspace=0.05,
+        wspace=0.12,
     )
 
     # ---- axes ----
