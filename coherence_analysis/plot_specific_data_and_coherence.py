@@ -382,7 +382,7 @@ if __name__ == "__main__":
     # np.testing.assert_almost_equal(data_array, data_array_2, decimal=5)
 
     data_files, file_times = get_data_files(args.data_path)
-    next_index = data_files.index("160314083518")
+    next_index = file_times.index("160314083518")
     (
         data_array,
         _,
@@ -422,7 +422,7 @@ if __name__ == "__main__":
     #     ],
     #     axis=0,
     # )
-    next_index = data_files.index("160314040218")
+    next_index = file_times.index("160314040218")
     (
         data_array,
         _,
