@@ -28,6 +28,7 @@ import os
 from datetime import datetime, timedelta
 
 import dascore as dc
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -144,7 +145,7 @@ if __name__ == "__main__":
     label_size = 16
     tick_size = 14
     legend_size = 12
-    sns.set_theme(style="ticks", context="paper", font_scale=1.1)
+    sns.set_theme(style="ticks", context="paper", font_scale=1.2)
 
     # ---- figure grid ----
     fig = plt.figure(figsize=(12, 7), dpi=dpi)
@@ -154,8 +155,8 @@ if __name__ == "__main__":
         ncols=3,
         width_ratios=[20, 20, 1],  # last column = shared colorbar
         height_ratios=[3, 1],
-        hspace=0.05,
-        wspace=0.12,
+        # hspace=0.05,
+        # wspace=0.12,
     )
 
     # ---- axes ----
@@ -246,14 +247,14 @@ if __name__ == "__main__":
         for a in range(eig_estimates_big.shape[1])
     ]
     for a in frequencies:
-        ax_line_a.plot(time_ax, eig_estimates_big[a, :], linewidth=1.5)
+        ax_line_a.plot(time_ax, eig_estimates_big[a, :] / 500, linewidth=2.5)
 
     time_ax = [
         timedelta(seconds=a) + small_signal_start_time
         for a in range(eig_estimates_small.shape[1])
     ]
     for a in frequencies:
-        ax_line_b.plot(time_ax, eig_estimates_small[a, :], linewidth=1.5)
+        ax_line_b.plot(time_ax, eig_estimates_small[a, :] / 500, linewidth=2.5)
 
     # ---- vertical event lines (left axes) ----
     for et in big_event_times:
@@ -305,12 +306,13 @@ if __name__ == "__main__":
         )
 
     # ---- x-axis date formatting ----
-    # for ax in [ax_line_a, ax_line_b]:
-    #     locator = mdates.AutoDateLocator()
-    #     ax.xaxis.set_major_locator(locator)
-    #     formatter = mdates.ConciseDateFormatter(locator)
-    #     ax.xaxis.set_major_formatter(formatter)
+    for ax in [ax_line_a, ax_line_b]:
+        locator = mdates.AutoDateLocator()
+        ax.xaxis.set_major_locator(locator)
+        formatter = mdates.ConciseDateFormatter(locator)
+        ax.xaxis.set_major_formatter(formatter)
 
-    print("Saving raw data plot...", flush=True)
+    fig.tight_layout()
+    print("Saving plot...", flush=True)
     os.makedirs(args.result_path, exist_ok=True)
     plt.savefig(os.path.join(args.result_path, "combined_data_plot.png"))
