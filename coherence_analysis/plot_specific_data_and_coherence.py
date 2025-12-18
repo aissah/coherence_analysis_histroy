@@ -131,7 +131,7 @@ def _next_data_window(
     )
 
     data, _ = func.load_brady_hdf5(data_files[next_index], normalize="no")
-    # data = func.rm_laser_drift(data)
+    data = func.rm_laser_drift(data)
     data_len = data.shape[1]
 
     stop_sample_index = (
@@ -169,7 +169,7 @@ def _next_data_window(
                 data_files[next_index],
                 normalize="no",
             )
-            # data = func.rm_laser_drift(data)
+            data = func.rm_laser_drift(data)
             data = data[
                 first_channel : channel_offset + first_channel : int(
                     channel_offset / num_channels
@@ -185,7 +185,7 @@ def _next_data_window(
                 data_files[next_index],
                 normalize="no",
             )
-            # next_data = func.rm_laser_drift(next_data)
+            next_data = func.rm_laser_drift(next_data)
             next_data = next_data[
                 first_channel : channel_offset + first_channel : int(
                     channel_offset / num_channels
@@ -289,7 +289,7 @@ if __name__ == "__main__":
     ]
     channel_range = [5000, 6500]
 
-    frequencies = [7, 11, 15]  # frequencies to plot traces for
+    frequencies = [7, 9, 15]  # frequencies to plot traces for
     big_event_times = [
         big_signal_start_time + timedelta(seconds=et) for et in [58, 69, 113]
     ]
@@ -471,14 +471,14 @@ if __name__ == "__main__":
         for a in range(eig_estimates_big.shape[1])
     ]
     for a in frequencies[:]:
-        ax_line_a.plot(time_ax, eig_estimates_big[a, :] / 500, linewidth=2.5)
+        ax_line_a.plot(time_ax, eig_estimates_big[a, :] / 500, linewidth=3.5)
 
     time_ax = [
         timedelta(seconds=a) + small_signal_start_time
         for a in range(eig_estimates_small.shape[1])
     ]
     for a in frequencies[:]:
-        ax_line_b.plot(time_ax, eig_estimates_small[a, :] / 500, linewidth=2.5)
+        ax_line_b.plot(time_ax, eig_estimates_small[a, :] / 500, linewidth=3.5)
 
     # ---- set y-limits for line plots ----
     ymax = np.max(eig_estimates_small[frequencies, :])
