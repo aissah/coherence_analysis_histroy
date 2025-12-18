@@ -94,9 +94,12 @@ if __name__ == "__main__":
     big_signal_start_time = datetime.strptime(
         "03/14/16 08:35:18", "%m/%d/%y %H:%M:%S"
     )
+    # small_signal_start_time = datetime.strptime(
+    #     "03/14/16 08:30:18", "%m/%d/%y %H:%M:%S"
+    # )
     small_signal_start_time = datetime.strptime(
-        "03/14/16 08:30:18", "%m/%d/%y %H:%M:%S"
-    )
+        "03/14/16 04:02:18", "%m/%d/%y %H:%M:%S"
+    )  # 2 different events
     big_time_range = [
         big_signal_start_time,
         big_signal_start_time + time_length,
@@ -111,9 +114,12 @@ if __name__ == "__main__":
     big_event_times = [
         big_signal_start_time + timedelta(seconds=et) for et in [58, 69, 113]
     ]
+    # small_event_times = [
+    #     small_signal_start_time + timedelta(seconds=et) for et in [106]
+    # ]
     small_event_times = [
-        small_signal_start_time + timedelta(seconds=et) for et in [106]
-    ]
+        small_signal_start_time + timedelta(seconds=et) for et in [32, 43]
+    ]  # 2 different events
 
     # Read the data
     print("Reading data...", flush=True)
@@ -169,8 +175,8 @@ if __name__ == "__main__":
     cax = fig.add_subplot(gs[0, 2])
 
     # ---- imshow (use SAME vmin/vmax) ----
-    vmax = 0.005
-    vmin = -0.005
+    vmax = 0.002
+    vmin = -0.002
     data_array = np.concatenate(
         [
             d.select(**{channel_dim: distance_array}).data
