@@ -107,7 +107,7 @@ if __name__ == "__main__":
     ]
     channel_range = [5000, 6500]
 
-    frequencies = [7, 8, 10]  # frequencies to plot traces for
+    frequencies = [7, 9, 17]  # frequencies to plot traces for
     big_event_times = [
         big_signal_start_time + timedelta(seconds=et) for et in [58, 69, 113]
     ]
@@ -312,7 +312,7 @@ if __name__ == "__main__":
         formatter = mdates.ConciseDateFormatter(locator)
         ax.xaxis.set_major_formatter(formatter)
 
-    fig.tight_layout()
+    # fig.tight_layout()
     print("Saving plot...", flush=True)
     os.makedirs(args.result_path, exist_ok=True)
     plt.savefig(os.path.join(args.result_path, "combined_data_plot.png"))
