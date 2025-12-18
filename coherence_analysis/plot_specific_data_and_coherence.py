@@ -260,6 +260,16 @@ if __name__ == "__main__":
     for a in frequencies[1:]:
         ax_line_b.plot(time_ax, eig_estimates_small[a, :] / 500, linewidth=2.5)
 
+    # ---- set y-limits for line plots ----
+    ymax = np.max(
+        eig_estimates_small[frequencies, :], eig_estimates_big[frequencies, :]
+    ).max()
+    ymax = ymax / 500
+    pad = 0.05 * (ymax - 0)
+    ymin = -pad
+    ymax += pad
+    ax_line_a.set_ylim(ymin, ymax)
+    ax_line_b.set_ylim(ymin, ymax)
     # ---- vertical event lines (left axes) ----
     for et in big_event_times:
         for ax in (ax_img_a, ax_line_a):
