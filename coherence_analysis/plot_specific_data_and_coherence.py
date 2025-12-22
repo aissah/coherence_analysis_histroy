@@ -461,7 +461,7 @@ if __name__ == "__main__":
     ax_img_b.set_yticklabels([])
 
     ax_line_a.set_xlabel("Time")
-    ax_line_a.set_ylabel("Normalized Eigenvalue")
+    ax_line_a.set_ylabel(r"$\hat{\mitbf{\lambda}}$")
     ax_line_b.set_xlabel("Time")
     ax_line_b.set_yticklabels([])
 
