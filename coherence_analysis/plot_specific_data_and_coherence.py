@@ -352,8 +352,8 @@ if __name__ == "__main__":
     cax = fig.add_subplot(gs[0, 2])
 
     # ---- imshow (use SAME vmin/vmax) ----
-    vmax = 0.002
-    vmin = -0.002
+    vmax = 0.005
+    vmin = -0.005
     # data_array = np.concatenate(
     #     [
     #         d.select(**{channel_dim: distance_array}).data
