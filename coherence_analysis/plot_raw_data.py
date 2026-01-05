@@ -25,16 +25,14 @@ Example:
 
 import argparse
 import os
-import pickle
 from ast import literal_eval
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import dascore as dc
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
-from matplotlib.lines import Line2D
 
 
 def parse_args():
@@ -180,109 +178,3 @@ if __name__ == "__main__":
     plt.savefig(
         os.path.join(args.result_path, f"raw_data_plot_{time_range[0]}.png")
     )
-
-    reference_time = datetime.strptime(
-        "03/14/16 08:38:18", "%m/%d/%y %H:%M:%S"
-    )
-    if time_range[0] == reference_time:
-        print("Plotting with event lines...", flush=True)
-        event_timestamps = [47, 52, 56, 77]
-        # load eigenvalue estimates
-        file_loc = "/u/st/by/aissah/scratch/coherence/coherence_test_results/"
-        file = file_loc + "qr_eig_estimatess_160313000018_160315235949.pkl"
-        with open(file, "rb") as f:
-            eig_estimates_qr = pickle.load(f)
-        eig_estimates_qr = eig_estimates_qr.reshape(
-            eig_estimates_qr.shape[0], 2089, 120
-        )
-
-        fig, (ax_img, ax_line) = plt.subplots(
-            nrows=2,
-            figsize=(7, 5),
-            dpi=dpi,
-            sharex=True,
-            gridspec_kw={"height_ratios": [3, 1], "hspace": 0.05},
-        )
-
-        # ---- imshow panel ----
-        im = ax_img.imshow(
-            data_array.T,
-            extent=[
-                time_range[0],
-                time_range[1],
-                distance_array[-1],
-                distance_array[0],
-            ],
-            cmap="RdBu_r",
-            vmin=-0.005,
-            vmax=0.005,
-            origin="lower",
-            aspect="auto",
-        )
-
-        ax_img.set_ylabel("Channels")
-        ax_img.tick_params(labelbottom=False)
-
-        # ---- line plot panel ----
-        x_ax = [
-            datetime.timedelta(seconds=a) + reference_time
-            for a in range(eig_estimates_qr.shape[2])
-        ]
-        line_handles = []
-        for a in [7, 8, 10]:
-            h = ax_line.plot(
-                x_ax, eig_estimates_qr[a, 979, :] / 500, label=f"{a} Hz"
-            )
-            line_handles.append(h)
-
-        ax_line.set_ylabel("Normalized Eigenvalue")
-        ax_line.set_xlabel("Time (UTC)")
-        ax_line.legend()
-
-        # ---- event lines ----
-        event_handles = []
-        for i, et in enumerate(event_timestamps):
-            for ax in (ax_img, ax_line):
-                event_time = reference_time + timedelta(seconds=et)
-                ax.axvline(
-                    event_time,
-                    color="k",
-                    linestyle="--",
-                    linewidth=1.4,
-                    alpha=0.8,
-                )
-            if i == 0:
-                event_handles.append(
-                    Line2D(
-                        [0],
-                        [0],
-                        color="k",
-                        linestyle="--",
-                        linewidth=1.4,
-                        label="Catalog Event",
-                    )
-                )
-
-        # ---- colorbar ----
-        cbar = fig.colorbar(im, ax=[ax_img, ax_line], pad=0.02)
-        cbar.set_label("Strain Rate")
-
-        # ---- legends ----
-        # Legend for line curves
-        ax_line.legend(
-            handles=line_handles,
-            frameon=False,
-            # fontsize=9,
-            loc="upper left",
-            ncol=2,
-        )
-
-        # Legend for events
-        ax_img.legend(
-            handles=event_handles,
-            frameon=False,
-            # fontsize=9,
-            loc="upper right",
-        )
-        fig.tight_layout()
-        plt.savefig(os.path.join(args.result_path, "combined_data_plot.png"))
