@@ -1,12 +1,15 @@
-from datetime import datetime
-from unittest.mock import MagicMock
+"""Test suite for coherence_analysis module."""
+
 import argparse
+from datetime import datetime
+from unittest import mock
+from unittest.mock import MagicMock
+
 import numpy as np
 import pytest
-import pickle
-from unittest import mock
+
+import coherence_analysis.utils.utils as utils
 from coherence_analysis.coherence_analysis import CoherenceAnalysis
-import coherence_analysis.utils as utils
 
 
 @pytest.fixture
@@ -155,6 +158,7 @@ def test_save_results(mocker, instance):
 
 
 def test_windowed_spectra():
+    """Test windowed_spectra and normalised_windowed_spectra functions."""
     sampling_rate = 500  # Hz
     duration = 60  # seconds
     t = np.linspace(0, duration, int(sampling_rate * duration), endpoint=False)
